@@ -8,5 +8,5 @@ page = st.sidebar.radio("اختر الصفحة:", [
 ])
 
 if page == "📊 لوحة التحكم":
-    import safahat.01_dash as dash
+    import safahat.dash_01 as dash
     dash.app()
