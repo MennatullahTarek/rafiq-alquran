@@ -1,16 +1,17 @@
 import streamlit as st
 
-
+# القارئ: (الاختصار، رقم السيرفر)
 readers = {
-    "عبدالباسط عبدالصمد": ("basit", 8),
-    "الحصري": ("husr", 8),
-    "محمود علي البنا": ("bna", 8),
+    "محمد صديق المنشاوي": ("minsh", 7),
+    "عبدالباسط عبدالصمد": ("abdulbasit_mujawwad", 10),
+    "محمود الحصري": ("husr", 8),
     "العفاسي": ("afs", 8),
     "ناصر القطامي": ("qtm", 11),
     "ياسر الدوسري": ("yasser", 11),
     "فارس عباد": ("frs_a", 8),
+    "هزاع البلوشي": ("hzr", 8),  # تأكد من slug الصحيح لاحقًا إن لم يعمل
+    "إبراهيم الدوسري": ("dos", 8)  # slug تجريبي (راجع API)
 }
-
 
 surahs = {
     "الفاتحة": 1,
@@ -135,16 +136,18 @@ def get_audio_url(reader_slug, server_num, surah_num):
 
 
 def app():
-    st.title("قسم التلاوة والاستماع")
+    st.title("📖 قسم التلاوة والاستماع")
+    st.markdown("### 🎙️ اختر القارئ و 📖 السورة للاستماع")
 
-    reader_choice = st.selectbox("🎙️ اختر القارئ:", list(readers.keys()))
-    surah_choice = st.selectbox("📖 اختر السورة:", list(surahs.keys()))
+    reader_choice = st.selectbox("القارئ:", list(readers.keys()))
+    surah_choice = st.selectbox("السورة:", list(surahs.keys()))
 
     if reader_choice and surah_choice:
         reader_slug, server_num = readers[reader_choice]
         surah_num = surahs[surah_choice]
         url = get_audio_url(reader_slug, server_num, surah_num)
-        st.markdown(f"###  تشغيل: {reader_choice} - سورة {surah_choice}")
+
+        st.markdown(f"### 🔊 تلاوة سورة {surah_choice} بصوت {reader_choice}")
         st.audio(url, format="audio/mp3")
 
 
