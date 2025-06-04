@@ -2,16 +2,16 @@ import streamlit as st
 
 
 readers = {
-    "إبراهيم الدوسري": "ibrahim-dosri",
-    " عبدالباسط عبدالصمد": "basit",
-    "فارس عباد": "frs_a",
-    "المنشاوي ": "minsh",
-    "الحصري": "husr",
-    "محمود علي البنا": "bna",
-    "العفاسي": "afs",
-    "ناصر القطامي": "qtm",
-    " ياسر الدوسري": "yasser",
-   "هزاع البلوشي":"hazza",
+    "عبدالباسط عبدالصمد": ("basit", 8),
+    "إبراهيم الدوسري": ("ibrahim-dosri", 11),
+    "فارس عباد": ("frs_a", 8),
+    "المنشاوي": ("minsh", 8),
+    "الحصري": ("husr", 8),
+    "محمود علي البنا": ("bna", 8),
+    "العفاسي": ("afs", 8),
+    "ناصر القطامي": ("qtm", 11),
+    "ياسر الدوسري": ("yasser", 11),
+    "هزاع البلوشي": ("hazza", 11),
 }
 
 
@@ -132,20 +132,24 @@ surahs = {
     "الناس": 114
 }
 
-def get_audio_url(reader_slug, surah_num):
-    return f"https://mp3quran.net/ar/{reader_slug}/{surah_num}"
+
+def get_audio_url(reader_slug, server_num, surah_num):
+    return f"https://server{server_num}.mp3quran.net/{reader_slug}/{surah_num:03d}.mp3"
+
 
 def app():
-    st.title("مدرب التلاوة")
+    st.title("📖 مدرب التلاوة")
 
-    reader_choice = st.selectbox("اختر القارئ:", list(readers.keys()))
-    surah_choice = st.selectbox("اختر السورة:", list(surahs.keys()))
+    reader_choice = st.selectbox("🎙️ اختر القارئ:", list(readers.keys()))
+    surah_choice = st.selectbox("📖 اختر السورة:", list(surahs.keys()))
 
     if reader_choice and surah_choice:
+        reader_slug, server_num = readers[reader_choice]
         surah_num = surahs[surah_choice]
-        url = get_audio_url(readers[reader_choice], surah_num)
-        st.write(f"تشغيل: {reader_choice} - سورة {surah_choice} (رقم {surah_num})")
+        url = get_audio_url(reader_slug, server_num, surah_num)
+        st.markdown(f"### 📥 تشغيل: {reader_choice} - سورة {surah_choice}")
         st.audio(url, format="audio/mp3")
+
 
 if __name__ == "__main__":
     app()
