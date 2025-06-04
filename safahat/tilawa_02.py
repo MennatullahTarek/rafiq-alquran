@@ -146,7 +146,7 @@ def app():
         reader_slug, server_num = readers[reader_choice]
         surah_num = surahs[surah_choice]
         url = get_audio_url(reader_slug, server_num, surah_num)
-        st.markdown(f"###  تشغيل: {reader_choice} - سورة {surah_choice}")
+        st.markdown(f"###  القارئ: {reader_choice} - سورة {surah_choice}")
         st.audio(url, format="audio/mp3")
 
 # تشغيل التطبيق
