@@ -19,22 +19,21 @@ def app():
         "الإخلاص", "الفلق", "الناس"
     ]
 
-
+ 
     readers = {
-        "الحصري": "husr",
-        "عبد الباسط": "abkr",
-        "المنشاوي": "mnsh"
+        "الحصري": ("server8", "husr"),
+        "عبد الباسط": ("server10", "abdulbasit_mujawwad"),
+        "المنشاوي": ("server7", "minsh")
     }
 
     surah = st.selectbox("📖 اختر السورة", surah_names)
-    reader = st.selectbox("🎙️ اختر القارئ", list(readers.keys()))
+    reader_name = st.selectbox("🎙️ اختر القارئ", list(readers.keys()))
 
     surah_number = surah_names.index(surah) + 1
     surah_code = str(surah_number).zfill(3)
-    reader_code = readers[reader]
 
+    server, reader_code = readers[reader_name]
+    audio_url = f"https://{server}.mp3quran.net/{reader_code}/{surah_code}.mp3"
 
-    audio_url = f"https://server8.mp3quran.net/{reader_code}/{surah_code}.mp3"
-
-    st.markdown(f"### 🎵 التلاوة بصوت {reader} - سورة {surah}")
+    st.markdown(f"### 🎵 التلاوة بصوت {reader_name} - سورة {surah}")
     st.audio(audio_url)
