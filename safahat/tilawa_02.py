@@ -21,8 +21,8 @@ def app():
 
  
     readers = {
+        "عبد الباسط": ("server10", "abdulbasit_mujawwad")و
         "الحصري": ("server8", "husr"),
-        "عبد الباسط": ("server10", "abdulbasit_mujawwad"),
         "المنشاوي": ("server7", "minsh")
     }
 
