@@ -4,4 +4,4 @@ transformers
 pandas
 matplotlib
 requests
-
+deep-translator
