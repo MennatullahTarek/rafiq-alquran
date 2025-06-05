@@ -14,6 +14,7 @@ class LLMHelper:
     def __init__(self, hf_token, model="tiiuae/falcon-7b-instruct"):
         self.client = InferenceClient(model=model, token=hf_token)
 
+
     def ask(self, prompt):
         response = self.client.text_generation(
             prompt=prompt,
