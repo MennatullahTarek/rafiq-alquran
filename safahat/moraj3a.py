@@ -4,9 +4,8 @@ import difflib
 import re
 import csv
 from io import StringIO
-from transformers import pipeline
 
-# --- Agent: Text Processing ---
+# --- Agent: Text Processor ---
 class TextProcessor:
     @staticmethod
     def strip_tashkeel(text):
@@ -26,16 +25,7 @@ class TextProcessor:
             return round(float(match.group(1)) * 10, 2)  # كنسبة مئوية
         return None
 
-# --- Agent 1: LLM Helper ---
-class LLMHelper:
-    def __init__(self):
-        self.generator = pipeline("text-generation", model="riotu-lab/ArabianGPT-01B")
-
-    def ask(self, prompt):
-        response = self.generator(prompt, max_new_tokens=100, temperature=0.7)
-        return response[0]['generated_text'].strip()
-
-# --- Agent 2: Ayah Fetcher ---
+# --- Agent: Ayah Fetcher ---
 class AyahFetcher:
     @staticmethod
     def get_ayah_text(surah_id, ayah_number):
@@ -48,7 +38,7 @@ class AyahFetcher:
                 return "⚠️ لم يتم العثور على نص الآية."
         return "❌ فشل الاتصال بجلب الآية."
 
-# --- Agent 3: Tafsir Fetcher ---
+# --- Agent: Tafsir Fetcher ---
 class TafsirFetcher:
     @staticmethod
     def get_tafsir(surah_id, ayah_number, tafsir_id=91):
@@ -72,10 +62,9 @@ def get_surahs():
 
 # --- التطبيق الرئيسي ---
 def app():
-    st.title("📖 رفيق القرآن - مراجعة وحفظ وتفسير")
+    st.title("\ud83d\udcd6 رفيق القرآن - مراجعة وحفظ وتفسير")
 
     # إنشاء الوكلاء
-    llm_helper = LLMHelper()
     ayah_fetcher = AyahFetcher()
     tafsir_fetcher = TafsirFetcher()
     text_processor = TextProcessor()
@@ -112,8 +101,8 @@ def app():
             words = actual_ayah.split()
             prompt_prefix = " ".join(words[:2]) if len(words) > 2 else actual_ayah
 
-            st.markdown(f"### 🧠 اختبار الحفظ\nأكمل بعد: **{prompt_prefix}...**")
-            user_input = st.text_area("📝 أكمل الآية:", key=f"mem_{ayah_num}")
+            st.markdown(f"### \ud83e\udde0 اختبار الحفظ\nأكمل بعد: **{prompt_prefix}...**")
+            user_input = st.text_area("\ud83d\udcdd أكمل الآية:", key=f"mem_{ayah_num}")
 
             if user_input.strip():
                 full_input = prompt_prefix + " " + user_input.strip()
@@ -122,26 +111,9 @@ def app():
             else:
                 score = "-"
 
-            st.markdown("### 📘 التفسير")
-            user_tafsir = st.text_area("📝 اشرح معنى الآية أو الكلمات:", key=f"tafsir_{ayah_num}")
-            if user_tafsir.strip():
-                llm_prompt = (
-                    f"قارن التفسير التالي بالتفسير الرسمي: '{user_tafsir}'.\n"
-                    f"التفسير الرسمي: '{tafsir_text}'.\n"
-                    f"قيّمه من ١٠ مع تصحيح الأخطاء إن وُجدت."
-                )
-                correction = llm_helper.ask(llm_prompt)
-                score_tafsir = text_processor.extract_score_from_text(correction)
-
-                if score_tafsir is not None:
-                    st.success(f"✅ تقييم التفسير: **{score_tafsir}%**")
-                else:
-                    st.warning("⚠️ لم يتم العثور على نسبة تقييم واضحة.")
-
-                st.expander("📄 التقييم النصي الكامل").write(correction)
-            else:
-                correction = ""
-                score_tafsir = "-"
+            st.markdown("### \ud83d\udcd8 التفسير")
+            user_tafsir = st.text_area("\ud83d\udcdd اشرح معنى الآية أو الكلمات:", key=f"tafsir_{ayah_num}")
+            st.info("📌 لا يتم تقييم التفسير تلقائيًا حاليًا.")
 
             responses.append([
                 st.session_state.surah_name,
@@ -149,7 +121,7 @@ def app():
                 user_input,
                 f"{score}%",
                 user_tafsir,
-                f"{score_tafsir}%" if isinstance(score_tafsir, (int, float)) else correction
+                "-"
             ])
 
         # --- تصدير النتائج ---
@@ -159,13 +131,13 @@ def app():
         writer.writerows(responses)
 
         st.download_button(
-            label="💾 تحميل النتيجة كملف CSV",
+            label="\ud83d\udcbe تحميل النتيجة كملف CSV",
             data=csv_buffer.getvalue(),
             file_name="نتائج_مراجعة_القرآن.csv",
             mime="text/csv"
         )
 
-        if st.button("🔄 ابدأ من جديد"):
+        if st.button("\ud83d\udd04 ابدأ من جديد"):
             st.session_state.started = False
             st.rerun()
 
