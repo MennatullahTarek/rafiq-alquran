@@ -8,30 +8,19 @@ from huggingface_hub import InferenceClient
 
 # --- LLM Agent ---
 
+from huggingface_hub import InferenceClient
+
 class LLMHelper:
-    def __init__(self, hf_token, model="mistralai/Mixtral-8x7B-Instruct-v0.1"):
+    def __init__(self, hf_token, model="tiiuae/falcon-7b-instruct"):
         self.client = InferenceClient(model=model, token=hf_token)
-        self.model = model
 
     def ask(self, prompt):
         response = self.client.text_generation(
             prompt=prompt,
-            max_new_tokens=150,
-            temperature=0.7,
-            do_sample=True,
-            return_full_text=False,
-            stop_sequences=["\n"]
+            max_new_tokens=100,
+            temperature=0.7
         )
-
-        # في حالة أن response يكون string أو dict أو list
-        if isinstance(response, str):
-            return response.strip()
-        elif isinstance(response, dict) and "generated_text" in response:
-            return response["generated_text"].strip()
-        elif isinstance(response, list) and len(response) > 0 and "generated_text" in response[0]:
-            return response[0]["generated_text"].strip()
-        else:
-            return str(response)
+        return response.strip()
 
 
 # --- سور القرآن ---
