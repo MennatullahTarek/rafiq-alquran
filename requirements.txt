@@ -1,7 +1,7 @@
 streamlit
 torch
 transformers
-weasyprint
-arabic-reshaper
-python-bidi
+pandas
+matplotlib
+
 
