@@ -5,5 +5,5 @@ pandas
 matplotlib
 requests
 deep-translator
-BeautifulSoup
-lxml
+beautifulsoup4
+
