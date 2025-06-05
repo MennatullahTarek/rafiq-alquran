@@ -1,19 +1,19 @@
 import streamlit as st
 import requests
 
-def get_tafsir(surah_number, aya_number):
-    """جلب التفسير من Quran.com API (تفسير السعدي)"""
-    tafsir_id = 169  # تفسير السعدي
-    verse_key = f"{surah_number}:{aya_number}"
-    url = f"https://api.quran.com:443/v4/quran/tafsirs/{tafsir_id}?verse_key={verse_key}"
-    
+
+def get_tafsir(edition_slug, surah_num, ayah_num):
+    url = f"https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/{edition_slug}/{surah_num}/{ayah_num}.json"
     response = requests.get(url)
-    
     if response.status_code == 200:
         data = response.json()
-        if "tafsir" in data and "text" in data["tafsir"]:
-            return data["tafsir"]["text"]
-    return None
+        # التفسير ممكن يكون نص في 'text' أو قائمة فقرات حسب التفسير المستخدم
+        tafsir_text = data.get("text") or "لا يوجد تفسير متاح لهذه الآية."
+        return tafsir_text
+    else:
+        return "حدث خطأ في جلب التفسير."
+
+
 
 
 def summarize_tafsir_with_llm(text, surah_name, aya_number):
