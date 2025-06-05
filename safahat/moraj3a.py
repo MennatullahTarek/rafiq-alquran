@@ -20,10 +20,13 @@ class LLMHelper:
                 max_new_tokens=100,
                 temperature=0.7
             )
-            # response ممكن تكون dict أو list حسب الموديل والنسخة
-            # هنا بنحاول نرجع النص المتولد
-            if isinstance(response, dict) and "generated_text" in response:
+            # إذا كان الاستجابة نص مباشرة
+            if isinstance(response, str):
+                return response.strip()
+            # إذا كانت الاستجابة قاموس يحتوي على النص المتولد
+            elif isinstance(response, dict) and "generated_text" in response:
                 return response["generated_text"].strip()
+            # إذا كانت الاستجابة قائمة تحتوي على قاموس
             elif isinstance(response, list) and len(response) > 0 and "generated_text" in response[0]:
                 return response[0]["generated_text"].strip()
             else:
@@ -62,7 +65,6 @@ def get_tafsir(surah, ayah, tafsir_id=91):
     return "❌ فشل الاتصال بالتفسير."
 
 # أدوات تقييم الحفظ
-
 def strip_tashkeel(text):
     return re.sub(r'[\u064B-\u0652]', '', text)
 
@@ -73,7 +75,6 @@ def compare_ayah(user_input, actual_text):
     return round(ratio * 100, 2)
 
 # التطبيق الرئيسي
-
 def app():
     st.title("📖 رفيق القرآن - مراجعة وحفظ وتفسير")
 
