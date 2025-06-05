@@ -2,8 +2,7 @@ import streamlit as st
 import requests
 
 def get_tafsir_muyassar(surah_num, ayah_num):
-    # هنا بنستخدم نسخة التفسير الميسر من AlQuran Cloud
-    url = f"https://api.alquran.cloud/v1/ayah/{surah_num}:{ayah_num}/editions/quran-simple"
+    url = f"https://api.alquran.cloud/v1/ayah/{surah_num}:{ayah_num}/editions/ar-tafsir-muyassar"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
@@ -15,6 +14,7 @@ def get_tafsir_muyassar(surah_num, ayah_num):
     else:
         st.error(f"❌ حدث خطأ في جلب التفسير: {response.status_code}")
         return None
+
 
 def app():
     st.title("📖 التفسير الميسر باستخدام AlQuran Cloud")
