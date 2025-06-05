@@ -12,12 +12,13 @@ def get_tafsir(edition_slug, surah_num, ayah_num):
         return "حدث خطأ في جلب التفسير."
 
 def summarize_tafsir_with_llm(text, surah_name, aya_number):
+    """تلخيص التفسير بلغة مبسطة باستخدام LLM"""
     prompt = f"""
-لخص التفسير التالي للآية رقم {aya_number} من سورة {surah_name} بلغة عربية مبسطة وسهلة الفهم، مع الحفاظ الكامل على المعنى الأصلي ودون حذف أي معلومة مهمة. لا تضف أو تحذف أي شيء.
+    لخص التفسير التالي للآية رقم {aya_number} من سورة {surah_name} بلغة عربية مبسطة وسهلة الفهم، دون تحريف أو تغيير في المعنى:
 
-النص الأصلي:
-"{text}"
-"""
+    "{text}"
+    """
+
     HF_TOKEN = st.secrets["HF_TOKEN"]
     API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
 
