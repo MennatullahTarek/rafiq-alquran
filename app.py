@@ -1,4 +1,5 @@
 import streamlit as st
+import safahat.hifz_planner_03 as hifz
 
 st.set_page_config(page_title="رفيق القرآن", layout="wide")
 
@@ -18,6 +19,4 @@ elif page == "التلاوة":
     tilawa.app()
 
 elif page == "مُخطط الحفظ":
-    import safahat.hifz_planner_03 as hifz
     hifz.app()
-
