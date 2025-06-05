@@ -1,27 +1,25 @@
 import streamlit as st
 import requests
 
-def get_english_tafsir(surah_num, ayah_num):
-    url = f"https://api.alquran.cloud/v1/ayah/{surah_num}:{ayah_num}/en.asad"
-    # هنا بنستخدم تفسير محمد أسعد (en.asad) لأنه من التفاسير الإنجليزية الجيدة
+def get_tafsir_en(surah_num, ayah_num):
+    url = f"https://api.alquran.cloud/v1/ayah/{surah_num}:{ayah_num}/en.tafsir"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        tafsir_text = data.get("data", {}).get("edition", {}).get("englishName", "")
-        tafsir_text = data.get("data", {}).get("text", "")
-        if tafsir_text:
-            return tafsir_text
+        tafsir_en = data['data']['tafsir']
+        if tafsir_en:
+            return tafsir_en
         else:
-            return None
+            return "لا يوجد تفسير متاح لهذه الآية."
     else:
         return None
 
-def translate_to_arabic(text, surah_name, ayah_number):
-   prompt = f"""
-Please translate the following English tafsir of Quran verse {aya_number} from Surah {surah_name} into clear, formal Arabic. Do not summarize or explain, just provide an accurate Arabic translation of the text below:
+def translate_to_arabic(text, surah_name, aya_number):
+    prompt = f"""
+    ترجم التفسير الإنجليزي التالي للآية رقم {aya_number} من سورة {surah_name} إلى اللغة العربية الفصحى بشكل دقيق وواضح، بدون أي شرح إضافي أو تلخيص، فقط الترجمة الحرفية للنص التالي:
 
-"{text}"
-"""
+    "{text}"
+    """
 
     HF_TOKEN = st.secrets["HF_TOKEN"]
     API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
@@ -29,25 +27,24 @@ Please translate the following English tafsir of Quran verse {aya_number} from S
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     payload = {
         "inputs": prompt,
-        "parameters": {
-            "temperature": 0.3,
-            "max_new_tokens": 200,
-            "repetition_penalty": 1.5
-        }
+        "parameters": {"temperature": 0.3, "max_new_tokens": 400}
     }
 
     response = requests.post(API_URL, headers=headers, json=payload)
+    
     if response.status_code == 200:
         result = response.json()
-        translated_text = result[0]["generated_text"].split(prompt)[-1].strip()
+        # إرجاع الترجمة فقط بدون النص الأصلي
+        generated_text = result[0]["generated_text"]
+        translated_text = generated_text.split(prompt)[-1].strip()
         return translated_text
     else:
-        st.error("❌ حدث خطأ أثناء الترجمة.")
+        st.error("حدث خطأ أثناء الترجمة.")
         st.text(response.text)
         return None
 
 def app():
-    st.title("📖 تفسير آية من القرآن (الإنجليزي + ترجمة عربية)")
+    st.title("📖 تفسير  القرآن ")
 
     surah_list = [
         ("الفاتحة", 1),
@@ -59,25 +56,25 @@ def app():
 
     surah_name = st.selectbox("اختر السورة", [name for name, _ in surah_list])
     surah_number = dict(surah_list)[surah_name]
-    ayah_number = st.number_input("اكتب رقم الآية", min_value=1, step=1)
+    aya_number = st.number_input("اكتب رقم الآية", min_value=1, step=1)
 
-    if st.button("عرض التفسير"):
-        st.info("جاري جلب التفسير الإنجليزي...")
-        tafsir_en = get_english_tafsir(surah_number, ayah_number)
+    if st.button("عرض التفسير "):
+        st.info("جاري  التفسير من مصدر معتمد ...")
+        tafsir_en = get_tafsir_en(surah_number, aya_number)
 
-        if tafsir_en:
-            st.success("✅ تم الحصول على التفسير الإنجليزي:")
-            st.markdown(f"> {tafsir_en}")
+        if tafsir_en is None:
+            st.error("❌ لم يتم العثور على تفسير في هذه الصفحة أو حدث خطأ في الاتصال.")
+            return
 
-            st.info("🔁 جاري الترجمة للعربية...")
-            tafsir_ar = translate_to_arabic(tafsir_en, surah_name, ayah_number)
-            if tafsir_ar:
-                st.success("📘 التفسير المترجم بالعربية:")
-                st.markdown(tafsir_ar)
-            else:
-                st.warning("لم يتم الترجمة بنجاح.")
+
+        st.info("جاري التلخيص  ...")
+        tafsir_ar = translate_to_arabic(tafsir_en, surah_name, aya_number)
+
+        if tafsir_ar:
+            st.success("📘 التفسير الميسر :")
+            st.markdown(tafsir_ar)
         else:
-            st.error("❌ لم يتم العثور على التفسير الإنجليزي لهذه الآية.")
+            st.warning("لم يتم التلخيص.")
 
 if __name__ == "__main__":
     app()
