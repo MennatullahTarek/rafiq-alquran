@@ -6,7 +6,6 @@ def get_tafsir_en(surah_num, ayah_num):
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        # data['data'] عبارة عن لستة مع تفسير واحد في العادة
         if "data" in data and len(data["data"]) > 0:
             tafsir_en = data["data"][0].get("text", None)
             if tafsir_en:
@@ -18,30 +17,22 @@ def get_tafsir_en(surah_num, ayah_num):
     else:
         return None
 
-
-def translate_to_arabic(text, surah_name, aya_number):
-    prompt = f"""
-    ترجم التفسير الإنجليزي التالي للآية رقم {aya_number} من سورة {surah_name} إلى اللغة العربية الفصحى بشكل دقيق وواضح، بدون أي شرح إضافي أو تلخيص، فقط الترجمة الحرفية للنص التالي:
-
-    "{text}"
-    """
-
-    HF_TOKEN = st.secrets["HF_TOKEN"]
-    API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
+def translate_to_arabic(text):
+    HF_TOKEN = st.secrets["HF_TOKEN"]  # لازم تحطي التوكن في secrets
+    API_URL = "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-ar"
 
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     payload = {
-        "inputs": prompt,
-        "parameters": {"temperature": 0.3, "max_new_tokens": 400}
+        "inputs": text,
+        "parameters": {"max_new_tokens": 512}
     }
 
     response = requests.post(API_URL, headers=headers, json=payload)
     
     if response.status_code == 200:
         result = response.json()
-        # إرجاع الترجمة فقط بدون النص الأصلي
-        generated_text = result[0]["generated_text"]
-        translated_text = generated_text.split(prompt)[-1].strip()
+        # ترجمة النص مباشرة
+        translated_text = result[0]["translation_text"]
         return translated_text
     else:
         st.error("حدث خطأ أثناء الترجمة.")
@@ -49,7 +40,7 @@ def translate_to_arabic(text, surah_name, aya_number):
         return None
 
 def app():
-    st.title("📖 تفسير  القرآن ")
+    st.title("📖 تفسير آية من القرآن وترجمتها للعربية")
 
     surah_list = [
         ("الفاتحة", 1),
@@ -63,23 +54,25 @@ def app():
     surah_number = dict(surah_list)[surah_name]
     aya_number = st.number_input("اكتب رقم الآية", min_value=1, step=1)
 
-    if st.button("عرض التفسير "):
-        st.info("جاري  التفسير من مصدر معتمد ...")
+    if st.button("عرض التفسير وترجمته"):
+        st.info("جاري جلب التفسير الإنجليزي...")
         tafsir_en = get_tafsir_en(surah_number, aya_number)
 
         if tafsir_en is None:
             st.error("❌ لم يتم العثور على تفسير في هذه الصفحة أو حدث خطأ في الاتصال.")
             return
+        
+        st.success("✅ تم الحصول على التفسير الإنجليزي:")
+        st.markdown(tafsir_en)
 
-
-        st.info("جاري التلخيص  ...")
-        tafsir_ar = translate_to_arabic(tafsir_en, surah_name, aya_number)
+        st.info("جاري ترجمة التفسير إلى العربية...")
+        tafsir_ar = translate_to_arabic(tafsir_en)
 
         if tafsir_ar:
-            st.success("📘 التفسير الميسر :")
+            st.success("📘 التفسير مترجم للعربية:")
             st.markdown(tafsir_ar)
         else:
-            st.warning("لم يتم التلخيص.")
+            st.warning("لم يتم الترجمة.")
 
 if __name__ == "__main__":
     app()
