@@ -5,22 +5,22 @@ import pandas as pd
 import os
 import requests
 
-def get_audio_url_from_quran_api(sura, aya):
+import requests
+
+def get_audio_url(sura, aya, reciter="7"):  
     """
-    جلب رابط الصوت من API.quran.com لصوت المنشاوي (معلم)
+    جلب رابط صوت الآية من Al Quran Cloud API
     """
     try:
-        url = f"https://api.quran.com/v4/recitations/7/by_ayah/{sura}:{aya}"
-        headers = {"accept": "application/json"}
-        response = requests.get(url, headers=headers)
+        response = requests.get(f"https://api.alquran.cloud/v1/ayah/{sura}:{aya}/ar.alafasy")
         if response.status_code == 200:
             data = response.json()
-            audio_url = data.get("audio", {}).get("url", None)
-            return audio_url
+            return data['data']['audio']
         else:
             return None
     except Exception:
         return None
+
 
 def save_hifz_record(sura, aya, repeat):
     """
@@ -52,7 +52,7 @@ def app():
     repeat_count = st.slider("عدد مرات التكرار", 1, 10, 3)
 
     if st.button("ابدأ التكرار"):
-        audio_url = get_audio_url_from_quran_api(sura_number, aya_number)
+        audio_url = get_audio_url(sura_number, aya_number)
 
         if audio_url:
             st.markdown(f"🔗 رابط الصوت المباشر: [اضغط هنا للاستماع]({audio_url})")
