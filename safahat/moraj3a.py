@@ -20,7 +20,7 @@ class LLMHelper:
             temperature=0.7
              )
 
-            )
+       
             # إذا كان الاستجابة نص مباشرة
             if isinstance(response, str):
                 return response.strip()
