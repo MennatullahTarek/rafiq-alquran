@@ -7,19 +7,22 @@ def get_tafsir_en(surah_num, ayah_num):
     if response.status_code == 200:
         data = response.json()
         tafsir_en = None
+        arabic_text = None
         if "data" in data and len(data["data"]) > 0:
             for item in data["data"]:
                 if item.get("edition", {}).get("identifier") == "en-tafsir-ibn-kathir":
                     tafsir_en = item.get("text", None)
-                    break
+                if item.get("edition", {}).get("identifier") == "ar":
+                    arabic_text = item.get("text", None)
             if tafsir_en:
                 return tafsir_en
             else:
-                return "لا يوجد تفسير متاح لهذه الآية."
+                return f"التفسير الإنجليزي غير متاح، هذه نص الآية بالعربية:\n\n{arabic_text}"
         else:
             return "لا يوجد تفسير متاح."
     else:
         return None
+
 
 
 def translate_to_arabic(text):
