@@ -1,45 +1,48 @@
 import streamlit as st
+from tafsir_api import TafsirAPI  # لازم تكون منصب المكتبة دي
 import requests
 
-def get_tafsir_muyassar(surah_num, ayah_num):
-    url = f"https://api.alquran.cloud/v1/ayah/{surah_num}:{ayah_num}/editions/ar-tafsir-muyassar"
-    response = requests.get(url)
+# دالة ترجمة بسيطة باستخدام HuggingFace API كمثال
+def translate_to_arabic(text):
+    HF_TOKEN = st.secrets["HF_TOKEN"]
+    API_URL = "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-ar"
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    payload = {"inputs": text, "parameters": {"max_new_tokens": 512}}
+
+    response = requests.post(API_URL, headers=headers, json=payload)
     if response.status_code == 200:
-        data = response.json()
-        if "data" in data and len(data["data"]) > 0:
-            tafsir = data["data"][0].get("text", None)
-            return tafsir
-        else:
-            return None
+        result = response.json()
+        return result[0]["translation_text"]
     else:
-        st.error(f"❌ حدث خطأ في جلب التفسير: {response.status_code}")
+        st.error("حدث خطأ أثناء الترجمة.")
         return None
 
-
 def app():
-    st.title("📖 التفسير الميسر باستخدام AlQuran Cloud")
+    st.title("📖 تفسير وترجمة آيات القرآن")
 
-    surah_list = [
-        ("الفاتحة", 1),
-        ("البقرة", 2),
-        ("آل عمران", 3),
-        ("النساء", 4),
-        ("المائدة", 5),
-    ]
+    tafsir = TafsirAPI()
 
-    surah_name = st.selectbox("اختر السورة", [name for name, _ in surah_list])
-    surah_number = dict(surah_list)[surah_name]
-    aya_number = st.number_input("اكتب رقم الآية", min_value=1, step=1)
+    surah_number = st.number_input("ادخل رقم السورة", min_value=1, max_value=114, step=1)
+    aya_number = st.number_input("ادخل رقم الآية", min_value=1, step=1)
 
-    if st.button("عرض التفسير الميسر"):
-        st.info("جاري جلب التفسير الميسر ...")
-        tafsir_text = get_tafsir_muyassar(surah_number, aya_number)
+    if st.button("جلب التفسير وترجمته"):
+        st.info("جاري جلب التفسير بالإنجليزية...")
+        try:
+            tafsir_en = tafsir.get_tafsir(surah_number, aya_number, lang="en")
+        except Exception as e:
+            st.error(f"حدث خطأ في جلب التفسير: {e}")
+            return
 
-        if tafsir_text:
-            st.markdown(f"### تفسير الآية {aya_number} من سورة {surah_name}")
-            st.write(tafsir_text)
+        if tafsir_en:
+            st.markdown(f"### التفسير بالإنجليزية:\n{tafsir_en}")
+            st.info("جاري ترجمة التفسير إلى العربية...")
+            tafsir_ar = translate_to_arabic(tafsir_en)
+            if tafsir_ar:
+                st.markdown(f"### التفسير مترجم للعربية:\n{tafsir_ar}")
+            else:
+                st.warning("لم يتم الحصول على الترجمة.")
         else:
-            st.error("❌ لم يتم العثور على تفسير لهذه الآية.")
+            st.error("لم يتم العثور على تفسير لهذه الآية.")
 
 if __name__ == "__main__":
     app()
