@@ -17,11 +17,12 @@ def get_english_tafsir(surah_num, ayah_num):
         return None
 
 def translate_to_arabic(text, surah_name, ayah_number):
-    prompt = f"""
-ترجم التفسير التالي للآية رقم {ayah_number} من سورة {surah_name} إلى اللغة العربية الفصحى بدقة ووضوح، بدون تكرار أو إعادة الصياغة، فقط ترجمة واحدة مفهومة:
+   prompt = f"""
+Please translate the following English tafsir of Quran verse {aya_number} from Surah {surah_name} into clear, formal Arabic. Do not summarize or explain, just provide an accurate Arabic translation of the text below:
 
 "{text}"
 """
+
     HF_TOKEN = st.secrets["HF_TOKEN"]
     API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
 
