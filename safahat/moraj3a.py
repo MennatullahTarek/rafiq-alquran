@@ -7,7 +7,6 @@ from io import StringIO
 from transformers import pipeline
 
 # --- LLM Agent ---
-
 class LLMHelper:
     def __init__(self):
         self.generator = pipeline("text-generation", model="riotu-lab/ArabianGPT-01B")
@@ -15,8 +14,6 @@ class LLMHelper:
     def ask(self, prompt):
         response = self.generator(prompt, max_new_tokens=100, temperature=0.7)
         return response[0]['generated_text'].strip()
-
-
 
 # --- سور القرآن ---
 def get_surahs():
@@ -49,13 +46,14 @@ def get_tafsir(surah_id, ayah_number, tafsir_id=91):
             return "⚠️ لم يتم العثور على التفسير."
     return "❌ فشل الاتصال بجلب التفسير."
 
-# --- أدوات تقييم الحفظ ---
+# --- إزالة التشكيل ---
 def strip_tashkeel(text):
     return re.sub(r'[\u064B-\u0652]', '', text)
 
+# --- مقارنة نص الآية مع محاولة المستخدم ---
 def compare_ayah(user_input, actual_text):
     actual_clean = strip_tashkeel(actual_text.replace('\n', '').strip())
-    user_clean = user_input.replace('\n', '').strip()
+    user_clean = strip_tashkeel(user_input.replace('\n', '').strip())
     similarity_ratio = difflib.SequenceMatcher(None, actual_clean, user_clean).ratio()
     return round(similarity_ratio * 100, 2)
 
@@ -63,7 +61,6 @@ def compare_ayah(user_input, actual_text):
 def app():
     st.title("📖 رفيق القرآن - مراجعة وحفظ وتفسير")
 
-   
     llm_helper = LLMHelper()
     surahs = get_surahs()
 
@@ -79,7 +76,8 @@ def app():
         st.session_state.surah_id = surahs[surah_name]
 
         st.session_state.start_ayah = st.number_input("من الآية رقم", min_value=1, value=1, key="start")
-        st.session_state.end_ayah = st.number_input("إلى الآية رقم", min_value=st.session_state.start_ayah, value=st.session_state.start_ayah, key="end")
+        st.session_state.end_ayah = st.number_input("إلى الآية رقم", min_value=st.session_state.start_ayah,
+                                                   value=st.session_state.start_ayah, key="end")
 
         if st.button("✅ ابدأ الإختبار"):
             st.session_state.started = True
@@ -110,7 +108,11 @@ def app():
             st.markdown("### 📘 التفسير")
             user_tafsir = st.text_area("📝 اشرح معنى الآية أو الكلمات:", key=f"tafsir_{ayah_num}")
             if user_tafsir.strip():
-                llm_prompt = f"قارن التفسير التالي بالتفسير الرسمي: '{user_tafsir}'. التفسير الرسمي: '{tafsir_text}'. قيّمه من ١٠ مع تصحيح الأخطاء إن وُجدت."
+                llm_prompt = (
+                    f"قارن التفسير التالي بالتفسير الرسمي: '{user_tafsir}'.\n"
+                    f"التفسير الرسمي: '{tafsir_text}'.\n"
+                    f"قيّمه من ١٠ مع تصحيح الأخطاء إن وُجدت."
+                )
                 correction = llm_helper.ask(llm_prompt)
                 st.info("🧾 تقييم التفسير:")
                 st.write(correction)
@@ -141,8 +143,7 @@ def app():
 
         if st.button("🔄 ابدأ من جديد"):
             st.session_state.started = False
-            st.rerun()
+            st.experimental_rerun()
 
-# لتشغيل التطبيق على Streamlit
 if __name__ == "__main__":
     app()
