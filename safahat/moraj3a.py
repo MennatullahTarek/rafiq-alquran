@@ -247,7 +247,7 @@ def app():
         st.session_state.surah_name = surah_name
         st.session_state.results = []
 
-        st.experimental_rerun()
+        st.rerun()
 
    
     if 'ayahs_list' in st.session_state and st.session_state.ayahs_list:
@@ -300,7 +300,7 @@ def app():
            
             if idx + 1 < len(st.session_state.ayahs_list):
                 st.session_state.current_index += 1
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.success("تم الانتهاء من جميع الآيات!")
                 st.rerun()
