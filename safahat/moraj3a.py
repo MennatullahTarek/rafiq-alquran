@@ -77,7 +77,6 @@ def compare_ayah(user_input, actual_text):
 
 # --- التطبيق الرئيسي ---
 def app():
-    st.set_page_config(page_title="رفيق القرآن", page_icon="📖")
     st.title("📖 رفيق القرآن - مراجعة وحفظ وتفسير")
 
     hf_token = st.secrets["hf_token"]
