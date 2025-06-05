@@ -4,3 +4,4 @@ transformers
 pandas
 matplotlib
 requests
+beautifulsoup4
