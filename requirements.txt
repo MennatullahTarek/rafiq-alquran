@@ -1,5 +1,7 @@
 streamlit
-transformers
 torch
-fpdf
-pandas
+transformers
+weasyprint
+arabic-reshaper
+python-bidi
+
