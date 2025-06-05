@@ -7,7 +7,7 @@ def get_tafsir_en(surah_num, ayah_num):
     if response.status_code == 200:
         data = response.json()
         if "data" in data and len(data["data"]) > 0:
-            tafsir_en = data["data"][0].get("text", None)
+            tafsir_en = data["data"].get("text", None)
             if tafsir_en:
                 return tafsir_en
             else:
