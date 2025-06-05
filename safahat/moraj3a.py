@@ -4,24 +4,18 @@ import difflib
 import re
 import csv
 from io import StringIO
-from huggingface_hub import InferenceClient
+from transformers import pipeline
 
 # --- LLM Agent ---
 
-from huggingface_hub import InferenceClient
-
 class LLMHelper:
-    def __init__(self, hf_token, model="tiiuae/falcon-7b-instruct"):
-        self.client = InferenceClient(model=model, token=hf_token)
-
+    def __init__(self):
+        self.generator = pipeline("text-generation", model="riotu-lab/ArabianGPT-01B")
 
     def ask(self, prompt):
-        response = self.client.text_generation(
-            prompt=prompt,
-            max_new_tokens=100,
-            temperature=0.7
-        )
-        return response.strip()
+        response = self.generator(prompt, max_new_tokens=100, temperature=0.7)
+        return response[0]['generated_text'].strip()
+
 
 
 # --- سور القرآن ---
@@ -69,8 +63,8 @@ def compare_ayah(user_input, actual_text):
 def app():
     st.title("📖 رفيق القرآن - مراجعة وحفظ وتفسير")
 
-    hf_token = st.secrets["hf_token"]
-    llm_helper = LLMHelper(hf_token)
+   
+    llm_helper = LLMHelper()
     surahs = get_surahs()
 
     if 'started' not in st.session_state:
