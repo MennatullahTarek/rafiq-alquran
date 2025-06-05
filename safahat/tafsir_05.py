@@ -1,48 +1,42 @@
 import streamlit as st
 import requests
+from deep_translator import GoogleTranslator
 
-def get_english_tafsir(surah_num, ayah_num):
-    tafsir_id = 169  # Tafsir Ibn Kathir (abridged) in English
-    ayah_key = f"{surah_num}:{ayah_num}"
-    url = f"https://api.quran.com/v4/tafsirs/{tafsir_id}/by_ayah/{ayah_key}"
-
+# دالة لجلب التفسير من Quran.com API
+def get_tafsir_quran_api(surah, ayah, tafsir_id=169):  # Tafsir Ibn Kathir English (abridged)
+    url = f"https://api.quran.com/api/v4/tafsirs/{tafsir_id}/by_ayah/{surah}:{ayah}"
     response = requests.get(url)
     if response.status_code == 200:
-        data = response.json()
         try:
-            return data['tafsir']['text']
+            return response.json()['tafsir']['text']
         except (KeyError, TypeError):
-            return "⚠️ No tafsir found for this verse."
+            return "⚠️ لم يتم العثور على التفسير."
     else:
-        return None
+        return "❌ فشل في الاتصال بالـ API."
 
+# دالة لترجمة النص من الإنجليزية للعربية
 def translate_to_arabic(text):
-    # ترجمة تجريبية باستخدام LLM (مش ترجمة احترافية أو Google Translate)
-    # تقدر تدمج Google Translate API هنا لو عندك API Key
     try:
-        from deep_translator import GoogleTranslator
         return GoogleTranslator(source='en', target='ar').translate(text)
     except:
-        return "⚠️ فشل في الترجمة. تأكد من وجود مكتبة deep_translator."
+        return "⚠️ فشل في الترجمة."
 
+# واجهة المستخدم
 def app():
-    st.title("📘 تفسير آية بالإنجليزي وترجمتها للعربية")
-
-    surah_number = st.number_input("رقم السورة", min_value=1, max_value=114, value=1)
-    ayah_number = st.number_input("رقم الآية", min_value=1, value=1)
-
-    if st.button("عرض التفسير"):
-        st.info("🔄 جاري جلب التفسير...")
-        eng_tafsir = get_english_tafsir(surah_number, ayah_number)
-        if eng_tafsir:
-            st.subheader("📖 Tafsir (English):")
-            st.write(eng_tafsir)
-
-            st.subheader("🔁 الترجمة للعربية:")
-            translated = translate_to_arabic(eng_tafsir)
-            st.write(translated)
-        else:
-            st.error("❌ لم يتم العثور على التفسير أو حدث خطأ في الاتصال.")
+    st.title("📖 تفسير آية من القرآن الكريم")
+    
+    surah = st.number_input("🔢 رقم السورة", min_value=1, max_value=114, value=1)
+    ayah = st.number_input("🔢 رقم الآية", min_value=1, value=1)
+    
+    if st.button("📚 عرض التفسير"):
+        st.info("⏳ جاري جلب التفسير من API...")
+        tafsir_en = get_tafsir_quran_api(surah, ayah)
+        st.subheader("📘 التفسير (بالإنجليزية):")
+        st.write(tafsir_en)
+        
+        st.subheader("📗 الترجمة للعربية:")
+        tafsir_ar = translate_to_arabic(tafsir_en)
+        st.write(tafsir_ar)
 
 if __name__ == "__main__":
     app()
