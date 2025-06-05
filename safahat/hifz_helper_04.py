@@ -5,12 +5,9 @@ import pandas as pd
 import os
 import requests
 
-import requests
 
 def get_audio_url(sura, aya, reciter="7"):  
-    """
-    جلب رابط صوت الآية من Al Quran Cloud API
-    """
+
     try:
         response = requests.get(f"https://api.alquran.cloud/v1/ayah/{sura}:{aya}/ar.alafasy")
         if response.status_code == 200:
