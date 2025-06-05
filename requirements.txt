@@ -4,4 +4,4 @@ transformers
 pandas
 matplotlib
 requests
-tafsir_api
+
