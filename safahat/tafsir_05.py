@@ -47,3 +47,6 @@ def app():
     else:
         st.error("حدث خطأ أثناء جلب التفسير.")
         st.text(response.text)
+
+if __name__ == "__main__":
+    app()
