@@ -6,19 +6,20 @@ def get_tafsir(edition_slug, surah_num, ayah_num):
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        tafsir_text = data.get("text") or "لا يوجد تفسير متاح لهذه الآية."
-        return tafsir_text
+        tafsir_text = data.get("text")
+        if tafsir_text:
+            return tafsir_text
+        else:
+            return "لا يوجد تفسير متاح لهذه الآية."
     else:
-        return "حدث خطأ في جلب التفسير."
+        return None  # نرجع None لو في مشكلة في جلب التفسير
 
 def summarize_tafsir_with_llm(text, surah_name, aya_number):
-    """تلخيص التفسير بلغة مبسطة باستخدام LLM"""
     prompt = f"""
     لخص التفسير التالي للآية رقم {aya_number} من سورة {surah_name} بلغة عربية مبسطة وسهلة الفهم، دون تحريف أو تغيير في المعنى:
 
     "{text}"
     """
-
     HF_TOKEN = st.secrets["HF_TOKEN"]
     API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
 
@@ -66,21 +67,22 @@ def app():
         st.info("جاري جلب التفسير من مصدر موثوق...")
         tafsir_text = get_tafsir(edition_slug, surah_number, aya_number)
 
-        if tafsir_text:
-            st.success("✅ تم الحصول على التفسير.")
-            st.markdown(tafsir_text)
+        if tafsir_text is None:
+            st.error("حدث خطأ في جلب التفسير. ربما الآية أو التفسير غير متوفر.")
+            return
 
-            if st.checkbox("تلخيص التفسير بلغة مبسطة؟"):
-                st.info("🔁 جاري تلخيص التفسير بلغة مبسطة...")
-                simplified = summarize_tafsir_with_llm(tafsir_text, surah_name, aya_number)
+        st.success("✅ تم الحصول على التفسير.")
+        st.markdown(tafsir_text)
 
-                if simplified:
-                    st.success("📘 التفسير المبسط:")
-                    st.markdown(simplified)
-                else:
-                    st.warning("لم يتم تلخيص التفسير.")
-        else:
-            st.error("لم يتم العثور على تفسير للآية المحددة.")
+        if st.checkbox("تلخيص التفسير بلغة مبسطة؟"):
+            st.info("🔁 جاري تلخيص التفسير بلغة مبسطة...")
+            simplified = summarize_tafsir_with_llm(tafsir_text, surah_name, aya_number)
+
+            if simplified:
+                st.success("📘 التفسير المبسط:")
+                st.markdown(simplified)
+            else:
+                st.warning("لم يتم تلخيص التفسير.")
 
 if __name__ == "__main__":
     app()
