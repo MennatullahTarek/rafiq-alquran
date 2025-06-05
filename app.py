@@ -24,5 +24,5 @@ elif page == "مُخطط الحفظ":
     hifz.app()
 
 elif page ==  "التفسير":
-    import tafsir_04 as tafsir
+    import safahat.tafsir_04 as tafsir
     tafsir.app()
