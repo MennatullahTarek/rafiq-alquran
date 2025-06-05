@@ -1,44 +1,68 @@
+import pysqlite3
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+import os
 import streamlit as st
 import pandas as pd
 from crewai import Agent, LLM
+from huggingface_hub import InferenceClient
+import json
 
+hf_token = os.getenv("HF_TOKEN")
+if not hf_token:
+    st.error("Error: Please set the HF_TOKEN environment variable with your Hugging Face token.")
+    st.stop()
 
+client = InferenceClient(token=hf_token)
 
-# تعريف الوكلاء
 class MemorizationAgent(Agent):
     def run(self, ayah_text, user_input):
-        # يقارن الحفظ (ممكن تستخدم تقنيات نصية متقدمة)
-        return {"memorization_correct": user_input.strip() == ayah_text.strip()}
+        correct = ayah_text.strip() == user_input.strip()
+        return {"memorization_correct": correct}
 
 class InterpretationAgent(Agent):
     def run(self, correct_interpretation, user_input):
-        # يقيم تفسير المستخدم (ممكن LLM يتدخل لتحسين التقييم)
-        correct = user_input.strip() == correct_interpretation.strip()
-        return {"interpretation_correct": correct}
+        correct = user_input.strip() != ""
+        return {"interpretation_provided": correct}
 
 class TajweedAgent(Agent):
     def run(self, correct_rule, user_input):
-        # يقارن حكم التجويد
         correct = user_input.strip() == correct_rule.strip()
         return {"tajweed_correct": correct}
 
-# تعريف LLM (بمهمة التنسيق والتقييم النهائي)
 class EvaluationLLM(LLM):
-    def run(self, memorization_res, interpretation_res, tajweed_res):
-        total_score = sum([
-            memorization_res.get("memorization_correct", False),
-            interpretation_res.get("interpretation_correct", False),
-            tajweed_res.get("tajweed_correct", False)
-        ])
-        return {"total_score": total_score}
+    def run(self, memorization_res, interpretation_res, tajweed_res, ayah_text, user_mem, user_int, user_taj):
+        prompt = f"""
+        القرآن الآية: "{ayah_text}"
+        حفظ المستخدم: "{user_mem}"
+        تفسير المستخدم: "{user_int}"
+        حكم التجويد: "{user_taj}"
 
-# داتا تجريبية (تقدري تستبدليها بمصدر موثوق أو API)
+        قيم الإجابات من 0 إلى 1 لكل قسم: الحفظ، التفسير، التجويد.
+        أعطني النتائج في شكل JSON: {{"memorization_score": float, "interpretation_score": float, "tajweed_score": float}}
+        """
+        response = client.text_generation(
+            model="gpt2",
+            inputs=prompt,
+            max_new_tokens=100,
+        )
+        generated_text = response.generated_text if hasattr(response, 'generated_text') else response[0]['generated_text']
+        try:
+            result = json.loads(generated_text)
+        except Exception:
+            result = {
+                "memorization_score": float(memorization_res.get("memorization_correct", False)),
+                "interpretation_score": float(interpretation_res.get("interpretation_provided", False)),
+                "tajweed_score": float(tajweed_res.get("tajweed_correct", False)),
+            }
+        return result
+
 QURAN_DATA = {
     "الفاتحة": [
         {"number": 1, "text": "بسم الله الرحمن الرحيم", "interpretation": "بسم الله المهيمن الرحيم", "tajweed": "إظهار"},
         {"number": 2, "text": "الحمد لله رب العالمين", "interpretation": "الحمد والثناء لله رب العالمين", "tajweed": "إدغام"},
         {"number": 3, "text": "الرحمن الرحيم", "interpretation": "الرحمن والرحيم", "tajweed": "إظهار"},
-        # ... ممكن تضيفي باقي الآيات
     ]
 }
 
@@ -49,7 +73,7 @@ def get_ayahs(sura_name, start, end):
     return [a for a in ayahs if start <= a['number'] <= end]
 
 def app():
-    st.title("Memory Game مع CrewAI")
+    st.title("Memory Game مع CrewAI وLLM حقيقي من Hugging Face")
 
     sura_name = st.text_input("اسم السورة (مثال: الفاتحة)").strip()
     start_ayah = st.number_input("من الآية", min_value=1, step=1)
@@ -76,29 +100,27 @@ def app():
             user_interpretation = st.text_area(f"التفسير / معنى الكلمات", key=f"int_{ayah['number']}")
             user_tajweed = st.text_input(f"حكم التجويد", key=f"taj_{ayah['number']}")
 
-            # تقييم الوكلاء
             mem_res = memorization_agent.run(ayah['text'], user_memorization)
             int_res = interpretation_agent.run(ayah['interpretation'], user_interpretation)
             taj_res = tajweed_agent.run(ayah['tajweed'], user_tajweed)
 
-            # تقييم LLM
-            total = llm.run(mem_res, int_res, taj_res)['total_score']
+            llm_res = llm.run(mem_res, int_res, taj_res, ayah['text'], user_memorization, user_interpretation, user_tajweed)
 
             results.append({
                 "ayah_number": ayah['number'],
                 "user_memorization": user_memorization,
-                "memorization_correct": mem_res["memorization_correct"],
+                "memorization_score": llm_res.get("memorization_score", 0),
                 "user_interpretation": user_interpretation,
-                "interpretation_correct": int_res["interpretation_correct"],
+                "interpretation_score": llm_res.get("interpretation_score", 0),
                 "user_tajweed": user_tajweed,
-                "tajweed_correct": taj_res["tajweed_correct"],
-                "total_score": total,
+                "tajweed_score": llm_res.get("tajweed_score", 0),
+                "total_score": sum(llm_res.values()),
             })
 
-            st.write(f"نتيجة الحفظ: {'✔️' if mem_res['memorization_correct'] else '❌'}")
-            st.write(f"نتيجة التفسير: {'✔️' if int_res['interpretation_correct'] else '❌'}")
-            st.write(f"نتيجة التجويد: {'✔️' if taj_res['tajweed_correct'] else '❌'}")
-            st.write(f"المجموع: {total} / 3")
+            st.write(f"نتيجة الحفظ: {llm_res.get('memorization_score', 0):.2f}")
+            st.write(f"نتيجة التفسير: {llm_res.get('interpretation_score', 0):.2f}")
+            st.write(f"نتيجة التجويد: {llm_res.get('tajweed_score', 0):.2f}")
+            st.write(f"المجموع: {sum(llm_res.values()):.2f}")
             st.markdown("---")
 
         if st.button("تحميل النتائج كملف CSV"):
@@ -112,4 +134,4 @@ def app():
             )
 
 if __name__ == "__main__":
-   app()
+    app()
