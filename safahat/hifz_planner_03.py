@@ -1,9 +1,9 @@
 import streamlit as st
-import openai
+from openai import OpenAI
 from fpdf import FPDF
 from io import BytesIO
 
-openai.api_key = st.secrets["openai_api_key"]
+client = OpenAI()  
 
 def app():
     st.title("🧠📖 مٌخطط حفظ القرآن")
@@ -30,8 +30,8 @@ def app():
 
         with st.spinner("جاري توليد الخطة الذكية..."):
             try:
-                response = openai.ChatCompletion.create(
-                    model="gpt-4o",  
+                response = client.chat.completions.create(
+                    model="gpt-4o",
                     messages=[
                         {"role": "system", "content": "أنت مساعد ذكي ومهذب في تعليم القرآن."},
                         {"role": "user", "content": prompt}
@@ -39,7 +39,7 @@ def app():
                     temperature=0.7
                 )
 
-                plan_text = response['choices'][0]['message']['content']
+                plan_text = response.choices[0].message.content
                 st.markdown("### ✨ خطة الحفظ الذكي:")
                 st.markdown(plan_text)
 
