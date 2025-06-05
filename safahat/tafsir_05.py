@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 def get_tafsir(surah_num, ayah_num):
-    url = f"https://api.quran.com/api/v4/verses/by_key/{surah_num}:{ayah_num}?language=ar&words=false&translations=131&tafsirs=16"
+    url = f"https://api.quran.com/api/v4/verses/by_key/{surah_num}:{ayah_num}?language=ar&words=false&translations=131&tafsirs=91"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
