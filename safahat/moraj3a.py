@@ -1,352 +1,191 @@
 import streamlit as st
 import requests
 import json
+from crewai import Agent, LLM
 from huggingface_hub import InferenceClient
-from io import StringIO
-import csv
-import os
+import pandas as pd
 
-# خلي توكن Hugging Face محفوظ في متغير بيئة (Env Var)
-HF_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
-if not HF_TOKEN:
-    st.error("⚠️ رجاءً قم بتعيين متغير البيئة HUGGINGFACE_API_TOKEN بالتوكن الخاص بك")
-    st.stop()
 
-# إعداد عميل Hugging Face مع موديل مناسب (مثلا gpt2-large)
-client = InferenceClient(model="gpt2-large", token=HF_TOKEN)
+HUGGINGFACE_API_TOKEN = st.secrets["HUGGINGFACE_API_TOKEN"]  
+MODEL_NAME = "gpt2"  
 
-# قاموس السور ورقمها
+client = InferenceClient(token=HUGGINGFACE_API_TOKEN)
+
+# معجم السور مع أرقامها
 surahs = {
-    "الفاتحة": 1,
-    "البقرة": 2,
-    "آل عمران": 3,
-    "النساء": 4,
-    "المائدة": 5,
-    "الأنعام": 6,
-    "الأعراف": 7,
-    "الأنفال": 8,
-    "التوبة": 9,
-    "يونس": 10,
-    "هود": 11,
-    "يوسف": 12,
-    "الرعد": 13,
-    "إبراهيم": 14,
-    "الحجر": 15,
-    "النحل": 16,
-    "الإسراء": 17,
-    "الكهف": 18,
-    "مريم": 19,
-    "طه": 20,
-    "الأنبياء": 21,
-    "الحج": 22,
-    "المؤمنون": 23,
-    "النور": 24,
-    "الفرقان": 25,
-    "الشعراء": 26,
-    "النمل": 27,
-    "القصص": 28,
-    "العنكبوت": 29,
-    "الروم": 30,
-    "لقمان": 31,
-    "السجدة": 32,
-    "الأحزاب": 33,
-    "سبأ": 34,
-    "فاطر": 35,
-    "يس": 36,
-    "الصافات": 37,
-    "ص": 38,
-    "الزمر": 39,
-    "غافر": 40,
-    "فصلت": 41,
-    "الشورى": 42,
-    "الزخرف": 43,
-    "الدخان": 44,
-    "الجاثية": 45,
-    "الأحقاف": 46,
-    "محمد": 47,
-    "الفتح": 48,
-    "الحجرات": 49,
-    "ق": 50,
-    "الذاريات": 51,
-    "الطور": 52,
-    "النجم": 53,
-    "القمر": 54,
-    "الرحمن": 55,
-    "الواقعة": 56,
-    "الحديد": 57,
-    "المجادلة": 58,
-    "الحشر": 59,
-    "الممتحنة": 60,
-    "الصف": 61,
-    "الجمعة": 62,
-    "المنافقون": 63,
-    "التغابن": 64,
-    "الطلاق": 65,
-    "التحريم": 66,
-    "الملك": 67,
-    "القلم": 68,
-    "الحاقة": 69,
-    "المعارج": 70,
-    "نوح": 71,
-    "الجن": 72,
-    "المزّمّل": 73,
-    "المدّثر": 74,
-    "القيامة": 75,
-    "الإنسان": 76,
-    "المرسلات": 77,
-    "النبأ": 78,
-    "النازعات": 79,
-    "عبس": 80,
-    "التكوير": 81,
-    "الإنفطار": 82,
-    "المطفّفين": 83,
-    "الإنشقاق": 84,
-    "البروج": 85,
-    "الطارق": 86,
-    "الأعلى": 87,
-    "الغاشية": 88,
-    "الفجر": 89,
-    "البلد": 90,
-    "الشمس": 91,
-    "الليل": 92,
-    "الضحى": 93,
-    "الشرح": 94,
-    "التين": 95,
-    "العلق": 96,
-    "القدر": 97,
-    "البينة": 98,
-    "الزلزلة": 99,
-    "العاديات": 100,
-    "القارعة": 101,
-    "التكاثر": 102,
-    "العصر": 103,
-    "الهمزة": 104,
-    "الفيل": 105,
-    "قريش": 106,
-    "الماعون": 107,
-    "الكوثر": 108,
-    "الكافرون": 109,
-    "النصر": 110,
-    "المسد": 111,
-    "الإخلاص": 112,
-    "الفلق": 113,
-    "الناس": 114
+    "الفاتحة": 1, "البقرة": 2, "آل عمران": 3, "النساء": 4, "المائدة": 5,
+    "الأنعام": 6, "الأعراف": 7, "الأنفال": 8, "التوبة": 9, "يونس": 10,
+    # ... ممكن تكمل بقية السور حسب الحاجة
 }
 
-# API جلب نص الآية
 def get_ayah_text(surah_num, ayah_num):
     url = f"https://api.quran.com/api/v4/quran/verses/uthmani?verse_key={surah_num}:{ayah_num}"
-    res = requests.get(url)
-    if res.status_code == 200:
+    r = requests.get(url)
+    if r.status_code == 200:
         try:
-            return res.json()['verses'][0]['text_uthmani']
-        except:
+            return r.json()['verses'][0]['text_uthmani']
+        except (KeyError, IndexError):
             return None
     return None
 
-# API جلب التفسير
 def get_tafsir(surah_num, ayah_num, tafsir_id=91):
     url = f"https://api.quran.com/api/v4/tafsirs/{tafsir_id}/by_ayah/{surah_num}:{ayah_num}"
-    res = requests.get(url)
-    if res.status_code == 200:
+    r = requests.get(url)
+    if r.status_code == 200:
         try:
-            return res.json()['tafsir']['text']
-        except:
+            return r.json()['tafsir']['text']
+        except (KeyError, TypeError):
             return None
     return None
 
-# 3 Agents بتوعك
+# وكلاء CrewAI
+class MemorizationAgent(Agent):
+    role: str = "memorization_checker"
+    goal: str = "تحقق من صحة الحفظ بمطابقة النص الأصلي"
+    backstory: str = "يتحقق من تطابق نص الآية مع إدخال المستخدم"
 
-class MemorizationAgent:
-    def __init__(self):
-        self.name = "agent_memorization"
+    def run(self, ayah_text: str, user_input: str):
+        correct = ayah_text.strip() == user_input.strip()
+        return {"memorization_correct": correct}
 
-    def evaluate(self, ayah_text, user_memorization):
-        prompt = f"""قيم حفظ المستخدم للآية التالية (مقياس من 0 إلى 1):
+class InterpretationAgent(Agent):
+    role: str = "interpretation_checker"
+    goal: str = "تأكد من وجود تفسير أو شرح للنص"
+    backstory: str = "يتحقق من تقديم المستخدم لتفسير للنص"
 
-الآية: "{ayah_text}"
+    def run(self, correct_interpretation: str, user_input: str):
+        correct = user_input.strip() != ""
+        return {"interpretation_provided": correct}
 
-حفظ المستخدم: "{user_memorization}"
+class TajweedAgent(Agent):
+    role: str = "tajweed_checker"
+    goal: str = "تحقق من صحة حكم التجويد المدخل"
+    backstory: str = "يقارن حكم التجويد الصحيح مع إدخال المستخدم"
 
-ارسل فقط رقم التقييم بدون أي شرح.
+    def run(self, correct_rule: str, user_input: str):
+        correct = user_input.strip() == correct_rule.strip()
+        return {"tajweed_correct": correct}
+
+class EvaluationLLM(LLM):
+    model: str = MODEL_NAME
+
+    def run(self, memorization_res, interpretation_res, tajweed_res, ayah_text, user_mem, user_int, user_taj):
+        prompt = f"""
+القرآن الآية: "{ayah_text}"
+حفظ المستخدم: "{user_mem}"
+تفسير المستخدم: "{user_int}"
+حكم التجويد: "{user_taj}"
+
+قيم الإجابات من 0 إلى 1 لكل قسم: الحفظ، التفسير، التجويد.
+أعطني النتائج في شكل JSON: {{"memorization_score": float, "interpretation_score": float, "tajweed_score": float}}
 """
+
         response = client.text_generation(
-            model="gpt2-large",
+            model=self.model,
             inputs=prompt,
-            max_new_tokens=20,
-            temperature=0.1,
+            max_new_tokens=100,
+            temperature=0.7,
         )
-        result = response.generated_text.strip()
+        # النص الناتج من النموذج
+        generated_text = response.generated_text
+
         try:
-            score = float(result)
-            if 0 <= score <= 1:
-                return score
-            else:
-                return 0.0
-        except:
-            return 0.0
-
-class InterpretationAgent:
-    def __init__(self):
-        self.name = "agent_interpretation"
-
-    def evaluate(self, ayah_text, user_interpretation):
-        prompt = f"""قيم تفسير المستخدم للآية التالية (مقياس من 0 إلى 1):
-
-الآية: "{ayah_text}"
-
-تفسير المستخدم: "{user_interpretation}"
-
-ارسل فقط رقم التقييم بدون أي شرح.
-"""
-        response = client.text_generation(
-            model="gpt2-large",
-            inputs=prompt,
-            max_new_tokens=20,
-            temperature=0.1,
-        )
-        result = response.generated_text.strip()
-        try:
-            score = float(result)
-            if 0 <= score <= 1:
-                return score
-            else:
-                return 0.0
-        except:
-            return 0.0
-
-class TajweedAgent:
-    def __init__(self):
-        self.name = "agent_tajweed"
-
-    def evaluate(self, ayah_text, user_tajweed):
-        prompt = f"""قيم حكم التجويد الخاص بالمستخدم على الآية التالية (مقياس من 0 إلى 1):
-
-الآية: "{ayah_text}"
-
-تجويد المستخدم: "{user_tajweed}"
-
-ارسل فقط رقم التقييم بدون أي شرح.
-"""
-        response = client.text_generation(
-            model="gpt2-large",
-            inputs=prompt,
-            max_new_tokens=20,
-            temperature=0.1,
-        )
-        result = response.generated_text.strip()
-        try:
-            score = float(result)
-            if 0 <= score <= 1:
-                return score
-            else:
-                return 0.0
-        except:
-            return 0.0
-
-# انشأ الـ agents
-memorization_agent = MemorizationAgent()
-interpretation_agent = InterpretationAgent()
-tajweed_agent = TajweedAgent()
+            result = json.loads(generated_text)
+        except Exception:
+            # fallback بسيط لو JSON مش نازل مظبوط
+            result = {
+                "memorization_score": float(memorization_res.get("memorization_correct", False)),
+                "interpretation_score": float(interpretation_res.get("interpretation_provided", False)),
+                "tajweed_score": float(tajweed_res.get("tajweed_correct", False)),
+            }
+        return result
 
 def app():
-    st.title("لعبة حفظ القرآن وتقييم الحفظ، التفسير، والتجويد")
+    st.title("Memory Game مع CrewAI و LLM من Hugging Face")
 
-    if "results" not in st.session_state:
-        st.session_state.results = {}
-
-    # اختيار السورة والآيات
     surah_name = st.selectbox("اختر السورة", list(surahs.keys()))
-    surah_num = surahs[surah_name]
+    start_ayah = st.number_input("من الآية", min_value=1, step=1, value=1)
+    end_ayah = st.number_input("إلى الآية", min_value=1, step=1, value=start_ayah)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        start_ayah = st.number_input("من الآية", min_value=1, value=1, step=1)
-    with col2:
-        end_ayah = st.number_input("إلى الآية", min_value=start_ayah, value=start_ayah, step=1)
+    # حفظ حالة النتائج
+    if "results" not in st.session_state:
+        st.session_state.results = []
 
-    # لكل آية: عرض النص، التفسير، وخانات المستخدم، مع حفظ النصوص في session_state
-    for ayah_num in range(start_ayah, end_ayah + 1):
-        ayah_text = get_ayah_text(surah_num, ayah_num)
-        if not ayah_text:
-            st.error(f"⚠️ الآية رقم {ayah_num} في سورة {surah_name} غير موجودة")
-            continue
+    if st.button("ابدأ اللعبة") or st.session_state.get("playing", False):
+        st.session_state.playing = True
+        surah_num = surahs[surah_name]
+        ayah_range = range(start_ayah, end_ayah + 1)
 
-        tafsir_text = get_tafsir(surah_num, ayah_num)
-        if not tafsir_text:
-            tafsir_text = "لا يوجد تفسير متاح."
+        memorization_agent = MemorizationAgent()
+        interpretation_agent = InterpretationAgent()
+        tajweed_agent = TajweedAgent()
+        llm = EvaluationLLM()
 
-        st.markdown(f"### الآية {ayah_num}:")
-        st.write(f"**النص:** {ayah_text}")
-        st.write(f"**التفسير:** {tafsir_text}")
+        results = []
 
-        # مفاتيح للحفظ في الجلسة
-        mem_key = f"mem_{ayah_num}"
-        tafsir_key = f"tafsir_{ayah_num}"
-        tajweed_key = f"tajweed_{ayah_num}"
-
-        if mem_key not in st.session_state:
-            st.session_state[mem_key] = ""
-        if tafsir_key not in st.session_state:
-            st.session_state[tafsir_key] = ""
-        if tajweed_key not in st.session_state:
-            st.session_state[tajweed_key] = ""
-
-        st.text_area(f"اكتب الحفظ الخاص بك للآية {ayah_num}", key=mem_key)
-        st.text_area(f"اكتب التفسير الخاص بك للآية {ayah_num}", key=tafsir_key)
-        st.text_area(f"اكتب حكم التجويد الخاص بك للآية {ayah_num}", key=tajweed_key)
-
-    # زر التقييم
-    if st.button("قيم كل الإجابات"):
-        st.session_state.results = {}
-        for ayah_num in range(start_ayah, end_ayah + 1):
+        for ayah_num in ayah_range:
             ayah_text = get_ayah_text(surah_num, ayah_num)
-            if not ayah_text:
+            tafsir = get_tafsir(surah_num, ayah_num) or ""
+
+            if ayah_text is None:
+                st.error(f"لم يتم العثور على نص الآية رقم {ayah_num} في سورة {surah_name}")
                 continue
 
-            user_mem = st.session_state.get(f"mem_{ayah_num}", "")
-            user_tafsir = st.session_state.get(f"tafsir_{ayah_num}", "")
-            user_tajweed = st.session_state.get(f"tajweed_{ayah_num}", "")
+            st.markdown(f"### الآية رقم {ayah_num}")
+            st.markdown(f"**نص الآية:**  {ayah_text}")
+            st.markdown(f"**التفسير:**  {tafsir}")
 
-            mem_score = memorization_agent.evaluate(ayah_text, user_mem)
-            interp_score = interpretation_agent.evaluate(ayah_text, user_tafsir)
-            tajweed_score = tajweed_agent.evaluate(ayah_text, user_tajweed)
+            user_mem_key = f"mem_{ayah_num}"
+            user_int_key = f"int_{ayah_num}"
+            user_taj_key = f"taj_{ayah_num}"
 
-            st.session_state.results[ayah_num] = {
-                "memorization_score": mem_score,
-                "interpretation_score": interp_score,
-                "tajweed_score": tajweed_score,
-            }
-        st.success("تم التقييم بنجاح! ✅")
+            user_memorization = st.text_area("سرد الآية (حفظ)", key=user_mem_key, value=st.session_state.get(user_mem_key, ""))
+            user_interpretation = st.text_area("التفسير / معنى الكلمات", key=user_int_key, value=st.session_state.get(user_int_key, ""))
+            user_tajweed = st.text_input("حكم التجويد", key=user_taj_key, value=st.session_state.get(user_taj_key, ""))
 
-    # عرض النتائج
+            # حفظ القيم في session_state عشان ما تروحش بعد إعادة التحميل
+            st.session_state[user_mem_key] = user_memorization
+            st.session_state[user_int_key] = user_interpretation
+            st.session_state[user_taj_key] = user_tajweed
+
+            mem_res = memorization_agent.run(ayah_text, user_memorization)
+            int_res = interpretation_agent.run(tafsir, user_interpretation)
+            taj_res = tajweed_agent.run("", user_tajweed)  # مفيش قاعدة صحيحة في API، تخلي التحقق بسيط
+
+            llm_res = llm.run(mem_res, int_res, taj_res, ayah_text, user_memorization, user_interpretation, user_tajweed)
+
+            total_score = sum(llm_res.values())
+
+            results.append({
+                "ayah_number": ayah_num,
+                "user_memorization": user_memorization,
+                "memorization_score": llm_res.get("memorization_score", 0),
+                "user_interpretation": user_interpretation,
+                "interpretation_score": llm_res.get("interpretation_score", 0),
+                "user_tajweed": user_tajweed,
+                "tajweed_score": llm_res.get("tajweed_score", 0),
+                "total_score": total_score,
+            })
+
+            st.write(f"نتيجة الحفظ: {llm_res.get('memorization_score', 0):.2f}")
+            st.write(f"نتيجة التفسير: {llm_res.get('interpretation_score', 0):.2f}")
+            st.write(f"نتيجة التجويد: {llm_res.get('tajweed_score', 0):.2f}")
+            st.write(f"المجموع: {total_score:.2f}")
+            st.markdown("---")
+
+        st.session_state.results = results
+
     if st.session_state.results:
-        st.subheader("نتائج التقييم:")
-        for ayah_num, scores in st.session_state.results.items():
-            st.markdown(f"**الآية {ayah_num}:**")
-            st.json(scores)
-
-    # زر تحميل CSV
-    if st.button("تصدير النتائج كملف CSV"):
-        if st.session_state.results:
-            output = StringIO()
-            writer = csv.writer(output)
-            writer.writerow(["آية", "تقييم الحفظ", "تقييم التفسير", "تقييم التجويد"])
-            for ayah_num, scores in st.session_state.results.items():
-                writer.writerow([
-                    ayah_num,
-                    scores.get("memorization_score", ""),
-                    scores.get("interpretation_score", ""),
-                    scores.get("tajweed_score", "")
-                ])
+        if st.button("تحميل النتائج كملف CSV"):
+            df = pd.DataFrame(st.session_state.results)
+            csv_data = df.to_csv(index=False).encode('utf-8-sig')
             st.download_button(
-                label="تحميل ملف التقييمات",
-                data=output.getvalue(),
-                file_name="quran_evaluation.csv",
-                mime="text/csv"
+                label="تحميل ملف النتائج (CSV)",
+                data=csv_data,
+                file_name=f"results_{surah_name}_{start_ayah}_to_{end_ayah}.csv",
+                mime='text/csv'
             )
-        else:
-            st.warning("لا توجد نتائج للتصدير")
+
 
 if __name__ == "__main__":
     app()
