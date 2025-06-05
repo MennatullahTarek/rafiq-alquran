@@ -8,41 +8,40 @@ from crewai import Agent, LLM
 from huggingface_hub import InferenceClient
 import json
 
-client = InferenceClient(token=st.secrets["HUGGINGFACE_API_TOKEN"])  # خلي التوكن في secrets
+client = InferenceClient(token="YOUR_HUGGINGFACE_API_TOKEN")
 
-# تعريف الوكلاء
 class MemorizationAgent(Agent):
-    role = "memorization"
-    goal = "Verify user's memorization"
-    backstory = "Compares the user's memorized text to the correct ayah text"
+    role: str = "memorization"
+    goal: str = "Verify user's memorization"
+    backstory: str = "Compares the user's memorized text to the correct ayah text"
 
     def run(self, ayah_text, user_input):
         correct = ayah_text.strip() == user_input.strip()
         return {"memorization_correct": correct}
 
 class InterpretationAgent(Agent):
-    role = "interpretation"
-    goal = "Check if user provided interpretation"
-    backstory = "Checks if user wrote something as interpretation"
+    role: str = "interpretation"
+    goal: str = "Check if user provided interpretation"
+    backstory: str = "Checks if user wrote something as interpretation"
 
     def run(self, correct_interpretation, user_input):
         correct = user_input.strip() != ""
         return {"interpretation_provided": correct}
 
 class TajweedAgent(Agent):
-    role = "tajweed"
-    goal = "Verify tajweed rule given by user"
-    backstory = "Compare user tajweed input to correct rule"
+    role: str = "tajweed"
+    goal: str = "Verify tajweed rule correctness"
+    backstory: str = "Compares the user's tajweed input to the correct tajweed rule"
 
     def run(self, correct_rule, user_input):
         correct = user_input.strip() == correct_rule.strip()
         return {"tajweed_correct": correct}
 
-# LLM بيراجع ويرد تقييم
+# LLM حقيقي من Hugging Face بيراجع الإجابات ويعطي تقييم
 class EvaluationLLM(LLM):
-    role = "evaluator"
-    goal = "Evaluate memorization, interpretation, tajweed"
-    backstory = "Uses LLM to score user's answers"
+    role: str = "llm"
+    goal: str = "Evaluate memorization, interpretation, and tajweed scores"
+    backstory: str = "Uses a language model to score user's answers based on correctness"
 
     def run(self, memorization_res, interpretation_res, tajweed_res, ayah_text, user_mem, user_int, user_taj):
         prompt = f"""
@@ -56,14 +55,15 @@ class EvaluationLLM(LLM):
         """
 
         response = client.text_generation(
-            model="gpt2",  # ممكن تغيري لموديل أكبر لو عندك
+            model="gpt2",  # ممكن تغيري لموديل أكبر
             inputs=prompt,
             max_new_tokens=100,
         )
-
+  
         try:
             result = json.loads(response.generated_text)
         except Exception:
+            # fallback إذا JSON مش متنسق
             result = {
                 "memorization_score": float(memorization_res.get("memorization_correct", False)),
                 "interpretation_score": float(interpretation_res.get("interpretation_provided", False)),
@@ -71,7 +71,6 @@ class EvaluationLLM(LLM):
             }
         return result
 
-# بيانات تجريبية للسور والآيات
 QURAN_DATA = {
     "الفاتحة": [
         {"number": 1, "text": "بسم الله الرحمن الرحيم", "interpretation": "بسم الله المهيمن الرحيم", "tajweed": "إظهار"},
@@ -90,92 +89,53 @@ def app():
     st.title("Memory Game مع CrewAI وLLM حقيقي من Hugging Face")
 
     sura_name = st.text_input("اسم السورة (مثال: الفاتحة)").strip()
-    start_ayah = st.number_input("من الآية", min_value=1, step=1, value=1)
-    end_ayah = st.number_input("إلى الآية", min_value=1, step=1, value=1)
+    start_ayah = st.number_input("من الآية", min_value=1, step=1)
+    end_ayah = st.number_input("إلى الآية", min_value=1, step=1)
 
-    if sura_name == "":
-        st.info("من فضلك أدخل اسم السورة")
-        return
+    if st.button("ابدأ اللعبة"):
+        ayahs = get_ayahs(sura_name, start_ayah, end_ayah)
+        if not ayahs:
+            st.error("السورة أو الآيات غير موجودة")
+            return
 
-    ayahs = get_ayahs(sura_name, start_ayah, end_ayah)
-    if not ayahs:
-        st.error("السورة أو الآيات غير موجودة")
-        return
+        memorization_agent = MemorizationAgent()
+        interpretation_agent = InterpretationAgent()
+        tajweed_agent = TajweedAgent()
+        llm = EvaluationLLM()
 
-    memorization_agent = MemorizationAgent()
-    interpretation_agent = InterpretationAgent()
-    tajweed_agent = TajweedAgent()
-    llm = EvaluationLLM()
-
-    st.markdown("### أدخل إجاباتك لكل آية ثم اضغط على تقييم في الأسفل")
-
-    # عرض الحقول لكل آية وتخزين النصوص في session_state
-    for ayah in ayahs:
-        st.markdown(f"#### الآية رقم {ayah['number']}")
-        st.write(f"النص: {ayah['text']}")
-
-        mem_key = f"mem_{ayah['number']}"
-        int_key = f"int_{ayah['number']}"
-        taj_key = f"taj_{ayah['number']}"
-
-        # حقول الإدخال مع حفظ القيم في session_state
-        if mem_key not in st.session_state:
-            st.session_state[mem_key] = ""
-        if int_key not in st.session_state:
-            st.session_state[int_key] = ""
-        if taj_key not in st.session_state:
-            st.session_state[taj_key] = ""
-
-        st.text_area("سرد الآية (حفظ)", key=mem_key)
-        st.text_area("التفسير / معنى الكلمات", key=int_key)
-        st.text_input("حكم التجويد", key=taj_key)
-        st.markdown("---")
-
-    if st.button("تقييم كل الآيات"):
         results = []
-        total_scores = 0
 
         for ayah in ayahs:
-            mem = st.session_state.get(f"mem_{ayah['number']}", "")
-            inte = st.session_state.get(f"int_{ayah['number']}", "")
-            taj = st.session_state.get(f"taj_{ayah['number']}", "")
+            st.markdown(f"### الآية رقم {ayah['number']}")
+            st.write(f"النص: {ayah['text']}")
 
-            mem_res = memorization_agent.run(ayah['text'], mem)
-            int_res = interpretation_agent.run(ayah['interpretation'], inte)
-            taj_res = tajweed_agent.run(ayah['tajweed'], taj)
+            user_memorization = st.text_area(f"سرد الآية (حفظ)", key=f"mem_{ayah['number']}")
+            user_interpretation = st.text_area(f"التفسير / معنى الكلمات", key=f"int_{ayah['number']}")
+            user_tajweed = st.text_input(f"حكم التجويد", key=f"taj_{ayah['number']}")
 
-            llm_res = llm.run(mem_res, int_res, taj_res, ayah['text'], mem, inte, taj)
+            mem_res = memorization_agent.run(ayah['text'], user_memorization)
+            int_res = interpretation_agent.run(ayah['interpretation'], user_interpretation)
+            taj_res = tajweed_agent.run(ayah['tajweed'], user_tajweed)
 
-            total_score = sum(llm_res.values())
+            llm_res = llm.run(mem_res, int_res, taj_res, ayah['text'], user_memorization, user_interpretation, user_tajweed)
 
             results.append({
                 "ayah_number": ayah['number'],
-                "user_memorization": mem,
+                "user_memorization": user_memorization,
                 "memorization_score": llm_res.get("memorization_score", 0),
-                "user_interpretation": inte,
+                "user_interpretation": user_interpretation,
                 "interpretation_score": llm_res.get("interpretation_score", 0),
-                "user_tajweed": taj,
+                "user_tajweed": user_tajweed,
                 "tajweed_score": llm_res.get("tajweed_score", 0),
-                "total_score": total_score,
+                "total_score": sum(llm_res.values()),
             })
 
-            total_scores += total_score
-
-        st.success(f"تم التقييم! المجموع الكلي للنقاط: {total_scores:.2f}")
-
-        # عرض النتائج بشكل مرتب
-        for res in results:
-            st.markdown(f"### نتائج الآية رقم {res['ayah_number']}")
-            st.write(f"حفظك: {res['user_memorization']}")
-            st.write(f"درجة الحفظ: {res['memorization_score']:.2f}")
-            st.write(f"تفسيرك: {res['user_interpretation']}")
-            st.write(f"درجة التفسير: {res['interpretation_score']:.2f}")
-            st.write(f"التجويد: {res['user_tajweed']}")
-            st.write(f"درجة التجويد: {res['tajweed_score']:.2f}")
-            st.write(f"المجموع: {res['total_score']:.2f}")
+            st.write(f"نتيجة الحفظ: {llm_res.get('memorization_score', 0):.2f}")
+            st.write(f"نتيجة التفسير: {llm_res.get('interpretation_score', 0):.2f}")
+            st.write(f"نتيجة التجويد: {llm_res.get('tajweed_score', 0):.2f}")
+            st.write(f"المجموع: {sum(llm_res.values()):.2f}")
             st.markdown("---")
 
-        # زر تحميل النتائج CSV
         if st.button("تحميل النتائج كملف CSV"):
             df = pd.DataFrame(results)
             csv_data = df.to_csv(index=False).encode('utf-8-sig')
