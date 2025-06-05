@@ -1,54 +1,41 @@
 import streamlit as st
 import requests
 
-def get_tafsir_en(surah_num, ayah_num):
-    url = f"https://api.alquran.cloud/v1/ayah/{surah_num}:{ayah_num}/editions/ar,en-tafsir-ibn-kathir"
+def get_tafsirs_list():
+    url = "https://api.quran.com/api/v4/tafsirs"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        tafsir_en = None
-        arabic_text = None
-        if "data" in data and len(data["data"]) > 0:
-            for item in data["data"]:
-                if item.get("edition", {}).get("identifier") == "en-tafsir-ibn-kathir":
-                    tafsir_en = item.get("text", None)
-                if item.get("edition", {}).get("identifier") == "ar":
-                    arabic_text = item.get("text", None)
-            if tafsir_en:
-                return tafsir_en
-            else:
-                return f"التفسير الإنجليزي غير متاح، هذه نص الآية بالعربية:\n\n{arabic_text}"
-        else:
-            return "لا يوجد تفسير متاح."
-    else:
-        return None
+        return data.get("tafsirs", [])
+    return []
 
-
-
-def translate_to_arabic(text):
-    HF_TOKEN = st.secrets["HF_TOKEN"]  # لازم تحطي التوكن في secrets
-    API_URL = "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-ar"
-
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {
-        "inputs": text,
-        "parameters": {"max_new_tokens": 512}
+def get_tafsir(chapter, verse, tafsir_id):
+    url = f"https://api.quran.com/api/v4/verses/by_key/{chapter}:{verse}"
+    params = {
+        "tafsirs": tafsir_id,
+        "language": "ar",
     }
-
-    response = requests.post(API_URL, headers=headers, json=payload)
-    
+    response = requests.get(url, params=params)
     if response.status_code == 200:
-        result = response.json()
-        # ترجمة النص مباشرة
-        translated_text = result[0]["translation_text"]
-        return translated_text
+        data = response.json()
+        verse_data = data.get("verse", {})
+        tafsirs = verse_data.get("tafsirs", [])
+        if tafsirs:
+            return tafsirs[0].get("text", "لا يوجد تفسير متاح لهذه الآية.")
+        else:
+            return "لا يوجد تفسير متاح لهذه الآية."
     else:
-        st.error("حدث خطأ أثناء الترجمة.")
-        st.text(response.text)
         return None
 
 def app():
-    st.title("📖 تفسير آية من القرآن وترجمتها للعربية")
+    st.title("📖 تفسير الميسر للقرآن الكريم")
+
+    # جلب التفسيرات المتاحة
+    tafsirs = get_tafsirs_list()
+    tafsir_map = {t['name']: t['id'] for t in tafsirs}
+
+    tafsir_name = st.selectbox("اختر التفسير", list(tafsir_map.keys()))
+    tafsir_id = tafsir_map[tafsir_name]
 
     surah_list = [
         ("الفاتحة", 1),
@@ -62,26 +49,14 @@ def app():
     surah_number = dict(surah_list)[surah_name]
     aya_number = st.number_input("اكتب رقم الآية", min_value=1, step=1)
 
-    if st.button("عرض التفسير وترجمته"):
-        st.info("جاري جلب التفسير الإنجليزي...")
-        tafsir_en = get_tafsir_en(surah_number, aya_number)
-        
-
-        if tafsir_en is None:
-            st.error("❌ لم يتم العثور على تفسير في هذه الصفحة أو حدث خطأ في الاتصال.")
-            return
-        
-        st.success("✅ تم الحصول على التفسير الإنجليزي:")
-        st.markdown(tafsir_en)
-
-        st.info("جاري ترجمة التفسير إلى العربية...")
-        tafsir_ar = translate_to_arabic(tafsir_en)
-
-        if tafsir_ar:
-            st.success("📘 التفسير مترجم للعربية:")
-            st.markdown(tafsir_ar)
+    if st.button("عرض التفسير"):
+        st.info("جاري جلب التفسير...")
+        tafsir_text = get_tafsir(surah_number, aya_number, tafsir_id)
+        if tafsir_text:
+            st.markdown(f"### تفسير الآية {aya_number} من سورة {surah_name}")
+            st.write(tafsir_text)
         else:
-            st.warning("لم يتم الترجمة.")
+            st.error("❌ لم يتم العثور على تفسير لهذه الآية.")
 
 if __name__ == "__main__":
     app()
