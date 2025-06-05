@@ -303,7 +303,7 @@ def app():
                 st.experimental_rerun()
             else:
                 st.success("تم الانتهاء من جميع الآيات!")
-                st.experimental_rerun()
+                st.rerun()
 
 
     if st.session_state.results:
