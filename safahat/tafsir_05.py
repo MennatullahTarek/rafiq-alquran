@@ -4,7 +4,7 @@ from deep_translator import GoogleTranslator
 from bs4 import BeautifulSoup
 
 # دالة لجلب التفسير من Quran.com API
-def get_tafsir_quran_api(surah, ayah, tafsir_id=169):  # Tafsir Ibn Kathir English (abridged)
+def get_tafsir_quran_api(surah, ayah, tafsir_id=91):  # Tafsir Ibn Kathir English (abridged)
     url = f"https://api.quran.com/api/v4/tafsirs/{tafsir_id}/by_ayah/{surah}:{ayah}"
     response = requests.get(url)
     if response.status_code == 200:
