@@ -11,7 +11,8 @@ def get_tafsir(edition_slug, surah_num, ayah_num):
     else:
         return "حدث خطأ في جلب التفسير."
 
-def summarize_tafsir_with_llm(text, surah_name, aya_number):
+
+   def summarize_tafsir_with_llm(text, surah_name, aya_number):
     """تلخيص التفسير بلغة مبسطة باستخدام LLM"""
     prompt = f"""
     لخص التفسير التالي للآية رقم {aya_number} من سورة {surah_name} بلغة عربية مبسطة وسهلة الفهم، دون تحريف أو تغيير في المعنى:
@@ -68,6 +69,7 @@ def app():
 
         if tafsir_text:
             st.success("✅ تم الحصول على التفسير.")
+             st.markdown(tafsir_text)
             st.info("🔁 جاري تلخيص التفسير بلغة مبسطة...")
             simplified = summarize_tafsir_with_llm(tafsir_text, surah_name, aya_number)
 
