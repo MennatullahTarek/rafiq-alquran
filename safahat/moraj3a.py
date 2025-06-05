@@ -6,7 +6,7 @@ import csv
 from io import StringIO
 from huggingface_hub import InferenceClient
 
-# ==== LLM Helper ====
+# Agent 4: LLM
 class LLMHelper:
     def __init__(self, hf_token, model="tiiuae/falcon-7b-instruct"):
         self.client = InferenceClient(token=hf_token)
@@ -16,28 +16,41 @@ class LLMHelper:
         response = self.client.text_generation(
             model=self.model,
             prompt=prompt,
-            max_new_tokens=200,
+            max_new_tokens=100,
             temperature=0.7
         )
         return response
 
-# ==== Quran & Tafsir API ====
+# Agent 1: سور وآيات
 def get_surahs():
-    return {"الفاتحة": 1, "البقرة": 2, "آل عمران": 3}  # اختصار
+    return {
+        "الفاتحة": 1, "البقرة": 2, "آل عمران": 3, "النساء": 4, "المائدة": 5, "الأنعام": 6, "الأعراف": 7,
+        # باقي السور ...
+        "الناس": 114
+    }
 
 def get_ayah_text(surah, ayah):
     url = f"https://api.quran.com/api/v4/quran/verses/uthmani?verse_key={surah}:{ayah}"
     response = requests.get(url)
     if response.status_code == 200:
-        return response.json()['verses'][0]['text_uthmani']
-    return "⚠️ لم يتم العثور على نص الآية."
+        try:
+            return response.json()['verses'][0]['text_uthmani']
+        except (KeyError, IndexError):
+            return "⚠️ لم يتم العثور على نص الآية."
+    return "❌ فشل الاتصال بنص الآية."
 
+# Agent 2: تفسير
 def get_tafsir(surah, ayah, tafsir_id=91):
     url = f"https://api.quran.com/api/v4/tafsirs/{tafsir_id}/by_ayah/{surah}:{ayah}"
     response = requests.get(url)
     if response.status_code == 200:
-        return response.json()['tafsir']['text']
-    return "⚠️ لم يتم العثور على التفسير."
+        try:
+            return response.json()['tafsir']['text']
+        except (KeyError, TypeError):
+            return "⚠️ لم يتم العثور على التفسير."
+    return "❌ فشل الاتصال بالتفسير."
+
+# أدوات تقييم الحفظ
 
 def strip_tashkeel(text):
     return re.sub(r'[\u064B-\u0652]', '', text)
@@ -48,67 +61,45 @@ def compare_ayah(user_input, actual_text):
     ratio = difflib.SequenceMatcher(None, actual_clean, user_clean).ratio()
     return round(ratio * 100, 2)
 
-# ==== Agents ====
-class Agent1_InputHandler:
-    def __init__(self, surah_name, start_ayah, end_ayah, surahs):
-        self.surah_name = surah_name
-        self.start_ayah = start_ayah
-        self.end_ayah = end_ayah
-        self.surahs = surahs
+# التطبيق الرئيسي
 
-class Agent2_Memorization:
-    def test(self, user_input, actual_ayah):
-        return compare_ayah(user_input, actual_ayah)
-
-class Agent3_Tafsir:
-    def __init__(self, llm_helper):
-        self.llm_helper = llm_helper
-
-    def evaluate(self, user_tafsir, official_tafsir):
-        prompt = f"قارن التفسير التالي بالتفسير الرسمي: '{user_tafsir}'. التفسير الرسمي: '{official_tafsir}'. قيمه من ١٠ مع توضيح الخطأ."
-        return self.llm_helper.ask(prompt)
-
-# ==== Main App ====
 def app():
     st.title("📖 رفيق القرآن - مراجعة وحفظ وتفسير")
 
     hf_token = st.secrets["hf_token"]
     llm_helper = LLMHelper(hf_token)
-    memorization_agent = Agent2_Memorization()
-    tafsir_agent = Agent3_Tafsir(llm_helper)
-
     surahs = get_surahs()
+
     surah_name = st.selectbox("اختر السورة", list(surahs.keys()))
     start_ayah = st.number_input("من الآية رقم", min_value=1, value=1)
     end_ayah = st.number_input("إلى الآية رقم", min_value=start_ayah, value=start_ayah)
 
     if st.button("ابدأ الإختبار"):
-        agent1 = Agent1_InputHandler(surah_name, start_ayah, end_ayah, surahs)
         responses = []
 
-        for ayah_num in range(agent1.start_ayah, agent1.end_ayah + 1):
+        for ayah_num in range(start_ayah, end_ayah + 1):
             st.subheader(f"الآية {ayah_num}")
-
-            actual_ayah = get_ayah_text(agent1.surahs[agent1.surah_name], ayah_num)
-            tafsir = get_tafsir(agent1.surahs[agent1.surah_name], ayah_num)
+            actual_ayah = get_ayah_text(surahs[surah_name], ayah_num)
+            tafsir = get_tafsir(surahs[surah_name], ayah_num)
 
             st.markdown("### 🧠 اختبار الحفظ")
-            user_mem = st.text_area(f"أكمل الآية ({ayah_num})")
-            score = ""
+            user_mem = st.text_area(f"أكمل الآية الكريمة ({ayah_num}):", key=f"mem_{ayah_num}")
+
+            score = correction = "-"
             if user_mem:
-                score = memorization_agent.test(user_mem, actual_ayah)
+                score = compare_ayah(user_mem, actual_ayah)
                 st.markdown(f"✅ تقييم الحفظ: **{score}%**")
 
-            st.markdown("### 📘 تفسير الآية")
-            user_tafsir = st.text_area(f"اشرح معنى الآية ({ayah_num})")
-            correction = ""
+            st.markdown("### 📘 التفسير")
+            user_tafsir = st.text_area(f"اشرح معنى الآية أو الكلمات ({ayah_num}):", key=f"tafsir_{ayah_num}")
             if user_tafsir:
-                correction = tafsir_agent.evaluate(user_tafsir, tafsir)
-                st.markdown(f"🧾 تقييم التفسير:
-{correction}")
+                prompt = f"قارن التفسير التالي بالتفسير الرسمي: '{user_tafsir}'. التفسير الرسمي: '{tafsir}'. قيمه من ١٠ مع تصحيح الخطأ."
+                correction = llm_helper.ask(prompt)
+                st.markdown("🧾 تقييم التفسير:")
+                st.write(correction)
 
             responses.append([
-                agent1.surah_name,
+                surah_name,
                 ayah_num,
                 user_mem,
                 f"{score}%",
