@@ -7,3 +7,4 @@ requests
 deep-translator
 beautifulsoup4
 crewai
+pysqlite3-binary
