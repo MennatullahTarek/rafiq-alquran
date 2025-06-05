@@ -125,6 +125,8 @@ surahs = {
     "الناس": 114
 }
 
+
+
 def get_ayah_text(surah_num, ayah_num):
     url = f"https://api.quran.com/api/v4/quran/verses/uthmani?verse_key={surah_num}:{ayah_num}"
     r = requests.get(url)
@@ -187,13 +189,11 @@ class EvaluationLLM(LLM):
 قيم كل قسم من 0 إلى 1: الحفظ، التفسير، التجويد.
 أعطني النتائج كـ JSON بهذا الشكل: {{"memorization_score": float, "interpretation_score": float, "tajweed_score": float}}
 """
-
         response = client.text_generation(
             model="gpt2",
             inputs=prompt,
             max_new_tokens=100,
         )
-
         try:
             result = json.loads(response.generated_text)
         except Exception:
@@ -205,16 +205,18 @@ class EvaluationLLM(LLM):
         return result
 
 def app():
-    st.title("Memory Game مع تفسير القرآن باستخدام API")
+    st.title("Memory Game مع تفسير القرآن باستخدام API وحفظ الحالة")
 
-    surah_name = st.selectbox("اختر السورة", list(surahs.keys()))
-    ayah_start = st.number_input("من الآية", min_value=1, value=1)
-    ayah_end = st.number_input("إلى الآية", min_value=ayah_start, value=ayah_start)
+    surah_name = st.selectbox("اختر السورة", list(surahs.keys()), key="surah_name")
+    ayah_start = st.number_input("من الآية", min_value=1, value=1, key="ayah_start")
+    ayah_end = st.number_input("إلى الآية", min_value=ayah_start, value=ayah_start, key="ayah_end")
+
+    if "results" not in st.session_state:
+        st.session_state.results = []
 
     if st.button("ابدأ اللعبة"):
         surah_num = surahs[surah_name]
-
-        results = []
+        st.session_state.results = []
 
         for ayah_num in range(ayah_start, ayah_end + 1):
             ayah_text = get_ayah_text(surah_num, ayah_num)
@@ -227,9 +229,20 @@ def app():
             st.markdown(f"### الآية رقم {ayah_num}")
             st.markdown(f"**نص الآية:** {ayah_text}")
 
-            user_memorization = st.text_area(f"سرد الآية (حفظ)", key=f"mem_{ayah_num}")
-            user_interpretation = st.text_area(f"التفسير / معنى الكلمات", key=f"int_{ayah_num}")
-            user_tajweed = st.text_input(f"حكم التجويد", key=f"taj_{ayah_num}")
+            mem_key = f"mem_{ayah_num}"
+            int_key = f"int_{ayah_num}"
+            taj_key = f"taj_{ayah_num}"
+
+            if mem_key not in st.session_state:
+                st.session_state[mem_key] = ""
+            if int_key not in st.session_state:
+                st.session_state[int_key] = ""
+            if taj_key not in st.session_state:
+                st.session_state[taj_key] = ""
+
+            user_memorization = st.text_area(f"سرد الآية (حفظ)", key=mem_key)
+            user_interpretation = st.text_area(f"التفسير / معنى الكلمات", key=int_key)
+            user_tajweed = st.text_input(f"حكم التجويد", key=taj_key)
 
             memorization_agent = MemorizationAgent()
             interpretation_agent = InterpretationAgent()
@@ -238,7 +251,7 @@ def app():
 
             mem_res = memorization_agent.run(ayah_text, user_memorization)
             int_res = interpretation_agent.run(tafsir_text or "", user_interpretation)
-            taj_res = tajweed_agent.run("إظهار", user_tajweed)  # ممكن تغير القاعدة حسب الآية
+            taj_res = tajweed_agent.run("إظهار", user_tajweed)  # ضع القاعدة المناسبة هنا
 
             llm_res = llm.run(mem_res, int_res, taj_res, ayah_text, user_memorization, user_interpretation, user_tajweed)
 
@@ -247,7 +260,7 @@ def app():
             st.write(f"نتيجة التجويد: {llm_res.get('tajweed_score', 0):.2f}")
             st.markdown("---")
 
-            results.append({
+            st.session_state.results.append({
                 "ayah_number": ayah_num,
                 "user_memorization": user_memorization,
                 "memorization_score": llm_res.get("memorization_score", 0),
@@ -257,16 +270,16 @@ def app():
                 "tajweed_score": llm_res.get("tajweed_score", 0),
             })
 
-        if results:
-            if st.button("تحميل النتائج كملف CSV"):
-                df = pd.DataFrame(results)
-                csv_data = df.to_csv(index=False).encode('utf-8-sig')
-                st.download_button(
-                    label="تحميل ملف النتائج (CSV)",
-                    data=csv_data,
-                    file_name=f"results_{surah_name}_{ayah_start}_to_{ayah_end}.csv",
-                    mime='text/csv'
-                )
+    if st.session_state.results:
+        if st.button("تحميل النتائج كملف CSV"):
+            df = pd.DataFrame(st.session_state.results)
+            csv_data = df.to_csv(index=False).encode('utf-8-sig')
+            st.download_button(
+                label="تحميل ملف النتائج (CSV)",
+                data=csv_data,
+                file_name=f"results_{st.session_state.surah_name}_{st.session_state.ayah_start}_to_{st.session_state.ayah_end}.csv",
+                mime='text/csv'
+            )
 
 if __name__ == "__main__":
     app()
