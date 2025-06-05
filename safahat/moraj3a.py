@@ -91,7 +91,7 @@ def app():
 
         if st.button("ابدأ الإختبار"):
             st.session_state.started = True
-            st.experimental_rerun()
+            st.rerun()
     else:
         responses = []
 
