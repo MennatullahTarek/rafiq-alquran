@@ -9,25 +9,20 @@ from huggingface_hub import InferenceClient
 # Agent 4: LLM
 class LLMHelper:
     def __init__(self, hf_token, model="tiiuae/falcon-7b-instruct"):
-        self.client = InferenceClient(token=hf_token)
+        self.client = InferenceClient(model=model, token=hf_token)
         self.model = model
 
     def ask(self, prompt):
         try:
-           response = self.client.text_generation(
-            prompt=prompt,
-            max_new_tokens=100,
-            temperature=0.7
-             )
-
-       
-            # إذا كان الاستجابة نص مباشرة
+            response = self.client.text_generation(
+                prompt=prompt,
+                max_new_tokens=100,
+                temperature=0.7
+            )
             if isinstance(response, str):
                 return response.strip()
-            # إذا كانت الاستجابة قاموس يحتوي على النص المتولد
             elif isinstance(response, dict) and "generated_text" in response:
                 return response["generated_text"].strip()
-            # إذا كانت الاستجابة قائمة تحتوي على قاموس
             elif isinstance(response, list) and len(response) > 0 and "generated_text" in response[0]:
                 return response[0]["generated_text"].strip()
             else:
@@ -40,7 +35,9 @@ class LLMHelper:
 def get_surahs():
     return {
         "الفاتحة": 1, "البقرة": 2, "آل عمران": 3, "النساء": 4, "المائدة": 5, "الأنعام": 6, "الأعراف": 7,
-        # باقي السور ...
+        "الأنفال": 8, "التوبة": 9, "يونس": 10, "هود": 11, "يوسف": 12, "الرعد": 13, "إبراهيم": 14,
+        "الحجر": 15, "النحل": 16, "الإسراء": 17, "الكهف": 18, "مريم": 19, "طه": 20,
+        # أضف باقي السور إذا أردت
         "الناس": 114
     }
 
@@ -142,3 +139,7 @@ def app():
             file_name="quran_review_results.csv",
             mime="text/csv"
         )
+
+# لتشغيل التطبيق على Streamlit Cloud
+if __name__ == "__main__":
+    app()
