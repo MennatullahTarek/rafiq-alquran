@@ -52,6 +52,13 @@ def compare_ayah(user_input, actual_text):
     similarity_ratio = difflib.SequenceMatcher(None, actual_clean, user_clean).ratio()
     return round(similarity_ratio * 100, 2)
 
+# --- استخراج تقييم التفسير كنسبة ---
+def extract_score_from_text(text):
+    match = re.search(r'(\d+(?:\.\d+)?)\s*/\s*10', text)
+    if match:
+        return round(float(match.group(1)) * 10, 2)  # كنسبة مئوية
+    return None
+
 # --- جلب سور القرآن ---
 def get_surahs():
     return {
@@ -121,10 +128,17 @@ def app():
                     f"قيّمه من ١٠ مع تصحيح الأخطاء إن وُجدت."
                 )
                 correction = llm_helper.ask(llm_prompt)
-                st.info("🧾 تقييم التفسير:")
-                st.write(correction)
+                score_tafsir = extract_score_from_text(correction)
+                
+                if score_tafsir is not None:
+                    st.success(f"✅ تقييم التفسير: **{score_tafsir}%**")
+                else:
+                    st.warning("⚠️ لم يتم العثور على نسبة تقييم واضحة.")
+
+                st.expander("📄 التقييم النصي الكامل").write(correction)
             else:
                 correction = ""
+                score_tafsir = "-"
 
             responses.append([
                 st.session_state.surah_name,
@@ -132,7 +146,7 @@ def app():
                 user_input,
                 f"{score}%",
                 user_tafsir,
-                correction
+                f"{score_tafsir}%" if isinstance(score_tafsir, (int, float)) else correction
             ])
 
         # --- تصدير النتائج ---
