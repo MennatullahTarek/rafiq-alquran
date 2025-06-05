@@ -197,7 +197,7 @@ def app():
         st.subheader("📗 التفسير:")
         st.markdown(tafsir, unsafe_allow_html=True)
 
-        # تحميل CSV
+     
         csv_buffer = StringIO()
         csv_writer = csv.writer(csv_buffer)
         csv_writer.writerow(["السورة", "رقم الآية", "نص الآية", "التفسير"])
@@ -210,17 +210,7 @@ def app():
             mime="text/csv"
         )
 
-    if st.button("💾 حفظ الصورة"):
-        surah_num = surahs[surah_name]
-        ayah_text = get_ayah_text(surah_num, ayah)
-        tafsir = get_tafsir_quran_api(surah_num, ayah)
 
-        img = text_to_image(ayah_text, tafsir)
-        buf = io.BytesIO()
-        img.save(buf, format="PNG")
-        byte_im = buf.getvalue()
-        st.image(img)
-        st.download_button(label="⬇️ تحميل الصورة", data=byte_im, file_name=f"{surah_name}_{ayah}.png", mime="image/png")
 
 if __name__ == "__main__":
     app()
