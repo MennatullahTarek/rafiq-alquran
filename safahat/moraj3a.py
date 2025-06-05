@@ -164,7 +164,7 @@ def app():
 
         if st.button("🔄 ابدأ من جديد"):
             st.session_state.started = False
-            st.experimental_rerun()
+            st.rerun()
 
 if __name__ == "__main__":
     app()
