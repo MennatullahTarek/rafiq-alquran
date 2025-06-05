@@ -1,26 +1,18 @@
 import streamlit as st
 import requests
-from bs4 import BeautifulSoup
 
-def get_tafsir_from_surahquran(page_num):
-    url = f"https://surahquran.com/tafsir-mokhtasar/{page_num}.htm"
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.content, "html.parser")
-            tafsir_blocks = soup.find_all("div", class_="tafser")
-            if not tafsir_blocks:
-                return None
-            tafsir_texts = [block.text.strip() for block in tafsir_blocks]
-            return "\n\n".join(tafsir_texts)
-        else:
-            return None
-    except Exception as e:
+def get_english_tafsir(surah, ayah):
+    url = f"http://api.alquran.cloud/v1/ayah/{surah}:{ayah}/en.asad"  # ممكن تغيير 'en.asad' حسب النسخة
+    res = requests.get(url)
+    if res.status_code == 200:
+        data = res.json()
+        return data['data']['text']
+    else:
         return None
 
-def summarize_tafsir_with_llm(text, page_num):
+def translate_to_arabic(text, surah_name, ayah_number):
     prompt = f"""
-    لخص التفسير التالي (من الصفحة {page_num} من المصحف) بلغة عربية مبسطة وسهلة الفهم، مع الحفاظ على المعنى الأصلي:
+    ترجم التفسير التالي للآية {ayah_number} من سورة {surah_name} إلى اللغة العربية الفصحى، مع الحفاظ على المعنى الدقيق:
 
     "{text}"
     """
@@ -30,42 +22,34 @@ def summarize_tafsir_with_llm(text, page_num):
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     payload = {
         "inputs": prompt,
-        "parameters": {"temperature": 0.7, "max_new_tokens": 300}
+        "parameters": {"temperature": 0.5, "max_new_tokens": 300}
     }
 
     response = requests.post(API_URL, headers=headers, json=payload)
-
     if response.status_code == 200:
-        result = response.json()
-        return result[0]["generated_text"].split(prompt)[-1].strip()
+        output = response.json()
+        return output[0]["generated_text"].split(prompt)[-1].strip()
     else:
-        st.error("❌ حدث خطأ أثناء تلخيص التفسير.")
-        return None
+        return "حدث خطأ أثناء الترجمة."
 
 def app():
-    st.title("📖 تفسير المصحف الشريف")
-    st.markdown("اختر رقم الصفحة (من 1 إلى 604) لعرض التفسير من موقع [surahquran.com](https://surahquran.com/tafsir-mokhtasar/)")
+    st.title("📖 ترجمة تفسير الآيات من الإنجليزية إلى العربية")
 
-    page_num = st.number_input("📄 رقم الصفحة", min_value=1, max_value=604, step=1)
+    surah = st.number_input("رقم السورة", min_value=1, max_value=114, value=1)
+    ayah = st.number_input("رقم الآية", min_value=1, step=1, value=1)
+    surah_name = st.text_input("اسم السورة (اختياري للعرض)", value="")
 
     if st.button("عرض التفسير"):
-        st.info("⏳ جاري جلب التفسير من الموقع...")
-        tafsir_text = get_tafsir_from_surahquran(page_num)
+        tafsir_en = get_english_tafsir(surah, ayah)
+        if tafsir_en:
+            st.markdown("### ✨ التفسير الإنجليزي:")
+            st.markdown(tafsir_en)
 
-        if tafsir_text:
-            st.success("✅ تم جلب التفسير بنجاح")
-            st.markdown(tafsir_text)
-
-            if st.checkbox("تلخيص التفسير بلغة مبسطة؟"):
-                st.info("🔁 جاري تلخيص التفسير...")
-                simplified = summarize_tafsir_with_llm(tafsir_text, page_num)
-                if simplified:
-                    st.success("📘 التفسير المبسط:")
-                    st.markdown(simplified)
-                else:
-                    st.warning("⚠️ لم يتم تلخيص التفسير.")
+            st.markdown("### 🌐 الترجمة إلى العربية:")
+            tafsir_ar = translate_to_arabic(tafsir_en, surah_name or f"سورة {surah}", ayah)
+            st.markdown(tafsir_ar)
         else:
-            st.error("❌ لم يتم العثور على تفسير في هذه الصفحة أو حدث خطأ في الاتصال.")
+            st.error("❌ لم يتم العثور على التفسير الإنجليزي.")
 
 if __name__ == "__main__":
     app()
