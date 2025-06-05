@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 from deep_translator import GoogleTranslator
+from bs4 import BeautifulSoup
 
 # دالة لجلب التفسير من Quran.com API
 def get_tafsir_quran_api(surah, ayah, tafsir_id=169):  # Tafsir Ibn Kathir English (abridged)
@@ -14,12 +15,19 @@ def get_tafsir_quran_api(surah, ayah, tafsir_id=169):  # Tafsir Ibn Kathir Engli
     else:
         return "❌ فشل في الاتصال بالـ API."
 
-# دالة لترجمة النص من الإنجليزية للعربية
+
+
+def clean_html(raw_html):
+    soup = BeautifulSoup(raw_html, "html.parser")
+    return soup.get_text(separator="\n")
+
 def translate_to_arabic(text):
     try:
-        return GoogleTranslator(source='en', target='ar').translate(text)
+        clean_text = clean_html(text)
+        return GoogleTranslator(source='en', target='ar').translate(clean_text)
     except:
         return "⚠️ فشل في الترجمة."
+
 
 # واجهة المستخدم
 def app():
