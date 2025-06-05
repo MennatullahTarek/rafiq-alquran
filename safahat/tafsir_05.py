@@ -2,17 +2,22 @@ import streamlit as st
 import requests
 
 def get_tafsir_en(surah_num, ayah_num):
-    url = f"https://api.alquran.cloud/v1/ayah/{surah_num}:{ayah_num}/en.tafsir"
+    url = f"https://api.alquran.cloud/v1/ayah/{surah_num}:{ayah_num}/editions/en-tafsir-ibn-kathir"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        tafsir_en = data['data']['tafsir']
-        if tafsir_en:
-            return tafsir_en
+        # data['data'] عبارة عن لستة مع تفسير واحد في العادة
+        if "data" in data and len(data["data"]) > 0:
+            tafsir_en = data["data"][0].get("text", None)
+            if tafsir_en:
+                return tafsir_en
+            else:
+                return "لا يوجد تفسير متاح لهذه الآية."
         else:
-            return "لا يوجد تفسير متاح لهذه الآية."
+            return "لا يوجد تفسير متاح."
     else:
         return None
+
 
 def translate_to_arabic(text, surah_name, aya_number):
     prompt = f"""
