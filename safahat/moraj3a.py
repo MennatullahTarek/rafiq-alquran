@@ -177,7 +177,7 @@ class MemorizationAgent:
         correct_text = get_ayah_text(self.surah_num, ayah_num)
         if not correct_text:
             return False, "لم أتمكن من جلب نص الآية."
-        # مقارنة نص المستخدم مع النص الصحيح (ممكن تحسين المقارنة لاحقاً)
+   
         if user_text.strip() == correct_text.strip():
             return True, "إجابتك صحيحة."
         else:
@@ -191,7 +191,7 @@ class TafsirAgent:
         correct_tafsir = get_tafsir(self.surah_num, ayah_num)
         if not correct_tafsir:
             return False, "لم أتمكن من جلب التفسير."
-        # هنا ممكن نستخدم الذكاء الاصطناعي للمقارنة الذكية، لكن حالياً مقارنة نصية بسيطة:
+   
         user_tafsir = user_tafsir.strip()
         if user_tafsir in correct_tafsir:
             return True, "تفسيرك مقبول."
@@ -246,7 +246,7 @@ def app():
             else:
                 st.warning("يُفضل إدخال توكن Huggingface للذكاء الاصطناعي")
 
-            st.experimental_rerun()
+            st.rerun()
 
     else:
         data_agent = st.session_state.data_agent
