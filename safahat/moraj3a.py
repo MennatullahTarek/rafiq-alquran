@@ -1,19 +1,16 @@
 import streamlit as st
 import requests
-from PIL import Image, ImageDraw, ImageFont
-from io import StringIO
-import csv
+import pandas as pd
+import difflib
+import os
 from huggingface_hub import InferenceClient
 
 
-import os
+
 HF_TOKEN = os.getenv("HF_TOKEN")  
-
-HF_MODEL = "gpt2"  
-
+HF_MODEL = "gpt2" 
 
 client = InferenceClient(model=HF_MODEL, token=HF_TOKEN)
-
 
 
 surahs = {
@@ -136,175 +133,195 @@ surahs = {
 
 def get_ayah_text(surah_num, ayah_num):
     url = f"https://api.quran.com/api/v4/quran/verses/uthmani?verse_key={surah_num}:{ayah_num}"
-    response = requests.get(url)
-    if response.status_code == 200:
+    res = requests.get(url)
+    if res.status_code == 200:
         try:
-            return response.json()['verses'][0]['text_uthmani']
+            return res.json()['verses'][0]['text_uthmani']
         except Exception:
-            return "⚠️ لم يتم العثور على نص الآية."
-    else:
-        return "❌ فشل في الاتصال بجلب نص الآية."
+            return None
+    return None
 
 def get_tafsir(surah_num, ayah_num, tafsir_id=91):
     url = f"https://api.quran.com/api/v4/tafsirs/{tafsir_id}/by_ayah/{surah_num}:{ayah_num}"
-    response = requests.get(url)
-    if response.status_code == 200:
+    res = requests.get(url)
+    if res.status_code == 200:
         try:
-            return response.json()['tafsir']['text']
+            return res.json()['tafsir']['text']
         except Exception:
-            return "⚠️ لم يتم العثور على التفسير."
-    else:
-        return "❌ فشل في الاتصال بجلب التفسير."
+            return None
+    return None
 
-# 6- دالة لتحويل النص والصورة (اختياري - ممكن تستخدم للعرض بصيغة صورة)
-def text_to_image(text, tafsir, font_path="arial.ttf", font_size=28, tafsir_font_size=18):
-    width, height = 800, 600
-    img = Image.new("RGB", (width, height), color="white")
-    draw = ImageDraw.Draw(img)
+# =========== Agent 4: LLM ذكي (تصحيح وتقييم) ==========
+class SmartAgent:
+    def __init__(self, client):
+        self.client = client
 
-    try:
-        font = ImageFont.truetype(font_path, font_size)
-        tafsir_font = ImageFont.truetype(font_path, tafsir_font_size)
-    except IOError:
-        font = ImageFont.load_default()
-        tafsir_font = ImageFont.load_default()
-
-    draw.text((width - 50, 50), text, fill="black", font=font, anchor="ra", direction="rtl")
-
-    lines = []
-    words = tafsir.split()
-    line = ""
-    for word in words:
-        test_line = (line + " " + word).strip()
-        if draw.textlength(test_line, font=tafsir_font) < width - 100:
-            line = test_line
-        else:
-            lines.append(line)
-            line = word
-    lines.append(line)
-
-    y_text = 150
-    for line in lines:
-        draw.text((50, y_text), line.strip(), fill="black", font=tafsir_font)
-        y_text += tafsir_font_size + 8  
-
-    return img
-
-
-class HuggingFaceLLM:
-    def __init__(self, model_name=HF_MODEL, token=HF_TOKEN):
-        self.model_name = model_name
-        self.token = token
-        self.client = InferenceClient(model=self.model_name, token=self.token)
-
-    def generate_text(self, prompt, max_tokens=200):
-        # استدعاء API
-        response = self.client.text_generation(
-            inputs=prompt,
-            max_new_tokens=max_tokens,
-            do_sample=True,
-            temperature=0.7,
+    def correct_text(self, user_text, original_text):
+        prompt = (
+            f"صحح لي النص التالي بناءً على النص الأصلي.\n\n"
+            f"النص الأصلي:\n{original_text}\n\n"
+            f"النص المدخل:\n{user_text}\n\n"
+            f"أعطني النص المصحح فقط."
         )
-        # response هي dict بها 'generated_text'
-        return response.generated_text if hasattr(response, 'generated_text') else response[0]['generated_text']
+        try:
+            response = self.client.text_generation(
+                inputs=prompt,
+                max_new_tokens=150,
+                temperature=0.3,
+            )
+            # بعض ال API ترجع dict او list
+            if isinstance(response, dict):
+                return response.get('generated_text', '')
+            elif isinstance(response, list):
+                return response[0].get('generated_text', '')
+            else:
+                return str(response)
+        except Exception as e:
+            return f"خطأ في التصحيح: {e}"
+
+    def evaluate_similarity(self, user_text, original_text):
+        ratio = difflib.SequenceMatcher(None, user_text, original_text).ratio()
+        return round(ratio, 3)
+
+    def evaluate_explanation(self, user_explanation, official_explanation):
+        # ممكن تستخدم LLM لتقييم الجودة لكن هنا بمقارنة نصية مبسطة
+        return self.evaluate_similarity(user_explanation, official_explanation)
 
 
+# =========== Agent 1: استقبال البيانات وتنسيقها ==========
+class InputAgent:
+    def __init__(self, surahs):
+        self.surahs = surahs
+
+    def surah_number(self, surah_name):
+        return self.surahs.get(surah_name, None)
+
+# =========== Agent 2: اختبار الحفظ ==========
 class MemorizationAgent:
-    def __init__(self, llm: HuggingFaceLLM):
-        self.llm = llm
-        self.memory = []
+    def __init__(self):
+        pass
 
-    def memorize(self, text):
-        self.memory.append(text)
-        return f"تم حفظ: {text}"
-
-class InferenceAgent:
-    def __init__(self, llm: HuggingFaceLLM):
-        self.llm = llm
-
-    def infer(self, prompt):
-        return self.llm.generate_text(prompt)
-
-class InteractionAgent:
-    def __init__(self, llm: HuggingFaceLLM):
-        self.llm = llm
-
-    def interact(self, prompt):
-        return self.llm.generate_text(prompt)
+    def evaluate_memorization(self, user_answer, correct_text):
+        ratio = difflib.SequenceMatcher(None, user_answer.strip(), correct_text.strip()).ratio()
+        return round(ratio, 3)  # بين 0 و 1
 
 
-llm = HuggingFaceLLM()
-memorization_agent = MemorizationAgent(llm)
-inference_agent = InferenceAgent(llm)
-interaction_agent = InteractionAgent(llm)
+# =========== Agent 3: التفسير ==========
+class TafsirAgent:
+    def __init__(self):
+        pass
+
+    def evaluate_tafsir(self, user_tafsir, official_tafsir):
+        ratio = difflib.SequenceMatcher(None, user_tafsir.strip(), official_tafsir.strip()).ratio()
+        return round(ratio, 3)
 
 
 def app():
-    st.title("📖 تفسير القرآن الكريم مع دعم LLM")
+    st.title("🕌 اختبار حفظ وتفسير آيات القرآن الكريم")
+
+ 
+    if 'results' not in st.session_state:
+        st.session_state.results = []
+
+    input_agent = InputAgent(surahs)
+    memorization_agent = MemorizationAgent()
+    tafsir_agent = TafsirAgent()
+    smart_agent = SmartAgent(client)
+
+ 
+    st.sidebar.header("إعدادات الاختبار")
+
+    surah_name = st.sidebar.selectbox("اختر السورة", list(surahs.keys()))
+    surah_num = input_agent.surah_number(surah_name)
+
+    start_ayah = st.sidebar.number_input("بداية الآيات", min_value=1, value=1)
+    end_ayah = st.sidebar.number_input("نهاية الآيات", min_value=start_ayah, value=start_ayah+2)
+
+    if st.sidebar.button("ابدأ الاختبار"):
+
+        
+        ayahs_list = list(range(start_ayah, end_ayah+1))
+        st.session_state.ayahs_list = ayahs_list
+        st.session_state.current_index = 0
+        st.session_state.surah_num = surah_num
+        st.session_state.surah_name = surah_name
+        st.session_state.results = []
+
+        st.experimental_rerun()
+
+   
+    if 'ayahs_list' in st.session_state and st.session_state.ayahs_list:
+
+        idx = st.session_state.current_index
+        ayah_num = st.session_state.ayahs_list[idx]
+        surah_num = st.session_state.surah_num
+        surah_name = st.session_state.surah_name
+
+        # جلب نص الآية
+        correct_ayah_text = get_ayah_text(surah_num, ayah_num) or "لا يوجد نص الآية"
+        official_tafsir = get_tafsir(surah_num, ayah_num) or "لا يوجد تفسير"
+
+        st.markdown(f"### السورة: **{surah_name}** | الآية رقم: **{ayah_num}**")
+        st.markdown(f"**النص الأصلي للآية:** {correct_ayah_text}")
+
+        st.markdown("### 📝 أكمل الآية التالية كتابة:")
+        user_memorization = st.text_area("أكتب الآية من الذاكرة هنا:")
+
+        st.markdown("### 📖 اكتب تفسيرك أو شرح معاني الكلمات:")
+        user_tafsir = st.text_area("تفسيرك هنا:")
+
+        if st.button("تقييم وإرسال"):
+            # Agent2: تقييم الحفظ
+            memorization_score = memorization_agent.evaluate_memorization(user_memorization, correct_ayah_text)
+
+            # Agent3: تقييم التفسير
+            tafsir_score = tafsir_agent.evaluate_tafsir(user_tafsir, official_tafsir)
+
+            # Agent4: الدعم الذكي - التصحيح
+            corrected_memorization = smart_agent.correct_text(user_memorization, correct_ayah_text)
+
+            # Agent4: الدعم الذكي - تقييم التفسير
+            explanation_eval = smart_agent.evaluate_explanation(user_tafsir, official_tafsir)
+
+           
+            st.session_state.results.append({
+                "سورة": surah_name,
+                "آية": ayah_num,
+                "الآية الأصلية": correct_ayah_text,
+                "إجابة اليوزر": user_memorization,
+                "تصحيح الآية": corrected_memorization,
+                "تقييم الحفظ": memorization_score,
+                "تفسير اليوزر": user_tafsir,
+                "تقييم التفسير": tafsir_score,
+                "تقييم التفسير الذكي": explanation_eval,
+                "التفسير الرسمي": official_tafsir
+            })
+
+           
+            if idx + 1 < len(st.session_state.ayahs_list):
+                st.session_state.current_index += 1
+                st.experimental_rerun()
+            else:
+                st.success("تم الانتهاء من جميع الآيات!")
+                st.experimental_rerun()
 
 
-    surah_name = st.selectbox("اختر السورة", list(surahs.keys()))
+    if st.session_state.results:
+        st.markdown("---")
+        st.header(" نتائج الاختبار")
 
-  
-    ayah_num = st.number_input("رقم الآية", min_value=1, value=1)
+        df = pd.DataFrame(st.session_state.results)
 
-    if "memory" not in st.session_state:
-        st.session_state.memory = []
+        st.dataframe(df)
 
-    if st.button("📚 عرض التفسير والنص"):
-        surah_num = surahs[surah_name]
-        ayah_text = get_ayah_text(surah_num, ayah_num)
-        tafsir = get_tafsir(surah_num, ayah_num)
-
-        st.subheader("📖 نص الآية:")
-        st.markdown(f"<div style='font-size:28px; direction: rtl; text-align: right;'>{ayah_text}</div>", unsafe_allow_html=True)
-
-        st.subheader("📗 التفسير:")
-        st.markdown(tafsir, unsafe_allow_html=True)
-
-        # حفظ الذاكرة في session state (مثلاً تقدر تستخدم لحفظ الحوارات أو التفسيرات)
-        st.session_state.memory.append({"surah": surah_name, "ayah": ayah_num, "text": ayah_text, "tafsir": tafsir})
-
-        # عرض الذاكرة
-        st.write("🧠 ذاكرة التفسير (جلسة المستخدم):")
-        for i, mem in enumerate(st.session_state.memory):
-            st.write(f"{i+1}. سورة {mem['surah']} آية {mem['ayah']}: {mem['text']}")
-
-        # تحميل ملف CSV
-        csv_buffer = StringIO()
-        csv_writer = csv.writer(csv_buffer)
-        csv_writer.writerow(["السورة", "رقم الآية", "نص الآية", "التفسير"])
-        for mem in st.session_state.memory:
-            csv_writer.writerow([mem['surah'], mem['ayah'], mem['text'], mem['tafsir']])
-
+        # تنزيل النتائج
+        csv = df.to_csv(index=False).encode('utf-8-sig')
         st.download_button(
-            label="💾 تحميل كل التفسيرات كملف CSV",
-            data=csv_buffer.getvalue(),
-            file_name=f"tafsir_all.csv",
-            mime="text/csv"
+            label="تحميل النتائج CSV",
+            data=csv,
+            file_name='quran_memorization_results.csv',
+            mime='text/csv'
         )
-
-    # استخدام الـ agents
-    st.markdown("---")
-    st.subheader("🧠 استخدام الذاكرة - حفظ نص")
-    text_to_memorize = st.text_input("اكتب نص للحفظ:")
-    if st.button("حفظ النص"):
-        result = memorization_agent.memorize(text_to_memorize)
-        st.success(result)
-
-    st.subheader("🤖 الاستنتاج من خلال LLM")
-    prompt = st.text_area("ادخل نص للاستنتاج:")
-    if st.button("استنتج"):
-        answer = inference_agent.infer(prompt)
-        st.markdown(f"**النتيجة:** {answer}")
-
-    st.subheader("💬 التفاعل مع LLM")
-    interaction_prompt = st.text_area("ادخل نص للتفاعل:")
-    if st.button("تفاعل"):
-        response = interaction_agent.interact(interaction_prompt)
-        st.markdown(f"**الرد:** {response}")
-
-
 
 if __name__ == "__main__":
     app()
