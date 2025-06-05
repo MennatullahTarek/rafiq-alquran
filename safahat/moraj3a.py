@@ -14,11 +14,12 @@ class LLMHelper:
 
     def ask(self, prompt):
         try:
-            response = self.client.text_generation(
-                model=self.model,
-                prompt=prompt,
-                max_new_tokens=100,
-                temperature=0.7
+           response = self.client.text_generation(
+            prompt=prompt,
+            max_new_tokens=100,
+            temperature=0.7
+             )
+
             )
             # إذا كان الاستجابة نص مباشرة
             if isinstance(response, str):
