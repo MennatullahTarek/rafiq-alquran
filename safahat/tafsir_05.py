@@ -1,55 +1,82 @@
 import streamlit as st
 import requests
 
-def get_english_tafsir(surah, ayah):
-    url = f"http://api.alquran.cloud/v1/ayah/{surah}:{ayah}/en.asad"  # ممكن تغيير 'en.asad' حسب النسخة
-    res = requests.get(url)
-    if res.status_code == 200:
-        data = res.json()
-        return data['data']['text']
+def get_english_tafsir(surah_num, ayah_num):
+    url = f"https://api.alquran.cloud/v1/ayah/{surah_num}:{ayah_num}/en.asad"
+    # هنا بنستخدم تفسير محمد أسعد (en.asad) لأنه من التفاسير الإنجليزية الجيدة
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        tafsir_text = data.get("data", {}).get("edition", {}).get("englishName", "")
+        tafsir_text = data.get("data", {}).get("text", "")
+        if tafsir_text:
+            return tafsir_text
+        else:
+            return None
     else:
         return None
 
 def translate_to_arabic(text, surah_name, ayah_number):
     prompt = f"""
-    ترجم التفسير التالي للآية {ayah_number} من سورة {surah_name} إلى اللغة العربية الفصحى، مع الحفاظ على المعنى الدقيق:
+ترجم التفسير التالي للآية رقم {ayah_number} من سورة {surah_name} إلى اللغة العربية الفصحى بدقة ووضوح، بدون تكرار أو إعادة الصياغة، فقط ترجمة واحدة مفهومة:
 
-    "{text}"
-    """
+"{text}"
+"""
     HF_TOKEN = st.secrets["HF_TOKEN"]
     API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
 
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     payload = {
         "inputs": prompt,
-        "parameters": {"temperature": 0.5, "max_new_tokens": 300}
+        "parameters": {
+            "temperature": 0.3,
+            "max_new_tokens": 200,
+            "repetition_penalty": 1.5
+        }
     }
 
     response = requests.post(API_URL, headers=headers, json=payload)
     if response.status_code == 200:
-        output = response.json()
-        return output[0]["generated_text"].split(prompt)[-1].strip()
+        result = response.json()
+        translated_text = result[0]["generated_text"].split(prompt)[-1].strip()
+        return translated_text
     else:
-        return "حدث خطأ أثناء الترجمة."
+        st.error("❌ حدث خطأ أثناء الترجمة.")
+        st.text(response.text)
+        return None
 
 def app():
-    st.title("📖 ترجمة تفسير الآيات من الإنجليزية إلى العربية")
+    st.title("📖 تفسير آية من القرآن (الإنجليزي + ترجمة عربية)")
 
-    surah = st.number_input("رقم السورة", min_value=1, max_value=114, value=1)
-    ayah = st.number_input("رقم الآية", min_value=1, step=1, value=1)
-    surah_name = st.text_input("اسم السورة (اختياري للعرض)", value="")
+    surah_list = [
+        ("الفاتحة", 1),
+        ("البقرة", 2),
+        ("آل عمران", 3),
+        ("النساء", 4),
+        ("المائدة", 5),
+    ]
+
+    surah_name = st.selectbox("اختر السورة", [name for name, _ in surah_list])
+    surah_number = dict(surah_list)[surah_name]
+    ayah_number = st.number_input("اكتب رقم الآية", min_value=1, step=1)
 
     if st.button("عرض التفسير"):
-        tafsir_en = get_english_tafsir(surah, ayah)
-        if tafsir_en:
-            st.markdown("### ✨ التفسير الإنجليزي:")
-            st.markdown(tafsir_en)
+        st.info("جاري جلب التفسير الإنجليزي...")
+        tafsir_en = get_english_tafsir(surah_number, ayah_number)
 
-            st.markdown("### 🌐 الترجمة إلى العربية:")
-            tafsir_ar = translate_to_arabic(tafsir_en, surah_name or f"سورة {surah}", ayah)
-            st.markdown(tafsir_ar)
+        if tafsir_en:
+            st.success("✅ تم الحصول على التفسير الإنجليزي:")
+            st.markdown(f"> {tafsir_en}")
+
+            st.info("🔁 جاري الترجمة للعربية...")
+            tafsir_ar = translate_to_arabic(tafsir_en, surah_name, ayah_number)
+            if tafsir_ar:
+                st.success("📘 التفسير المترجم بالعربية:")
+                st.markdown(tafsir_ar)
+            else:
+                st.warning("لم يتم الترجمة بنجاح.")
         else:
-            st.error("❌ لم يتم العثور على التفسير الإنجليزي.")
+            st.error("❌ لم يتم العثور على التفسير الإنجليزي لهذه الآية.")
 
 if __name__ == "__main__":
     app()
