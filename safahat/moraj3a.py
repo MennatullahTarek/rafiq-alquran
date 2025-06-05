@@ -67,7 +67,7 @@ class TajweedAgent(Agent):
         return {"tajweed_correct": correct}
 
 class EvaluationLLM(LLM):
-    model: str = MODEL_NAME
+    model: str =  "gpt2"  
 
     def run(self, memorization_res, interpretation_res, tajweed_res, ayah_text, user_mem, user_int, user_taj):
         prompt = f"""
