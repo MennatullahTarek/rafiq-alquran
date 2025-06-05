@@ -2,10 +2,8 @@ import streamlit as st
 import requests
 
 def get_tafsir_en(surah_num, ayah_num):
-    """
-    جلب التفسير بالإنجليزية من tafsir_api (spa5k)
-    """
-    url = f"https://tafsir-api.spakky.dev/api/v1/tafsir?surah={surah_num}&ayah={ayah_num}&tafsir=1"  # tafsir=1 يعني تفسير مبسط
+ 
+    url = f"https://tafsir-api.spakky.dev/api/v1/tafsir?surah={surah_num}&ayah={ayah_num}&tafsir=91"  
     try:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
@@ -20,22 +18,9 @@ def get_tafsir_en(surah_num, ayah_num):
     except Exception as e:
         return None
 
-def translate_google(text):
-    """
-    ترجمة باستخدام Google Translate API
-    """
-    try:
-        translate_client = translate.Client()
-        result = translate_client.translate(text, target_language="ar")
-        return result['translatedText']
-    except Exception as e:
-        return None
 
 def translate_huggingface(text):
-    """
-    ترجمة باستخدام HuggingFace API (موديل ترجمة)
-    """
-    HF_TOKEN = st.secrets["HF_TOKEN"]  # لازم تحط التوكن في secrets
+    HF_TOKEN = st.secrets["HF_TOKEN"] 
     API_URL = "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-ar"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     payload = {"inputs": text, "parameters": {"max_new_tokens": 512}}
