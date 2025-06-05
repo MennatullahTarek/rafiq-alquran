@@ -1,20 +1,15 @@
 import streamlit as st
 import requests
 
-
 def get_tafsir(edition_slug, surah_num, ayah_num):
     url = f"https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/{edition_slug}/{surah_num}/{ayah_num}.json"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        # التفسير ممكن يكون نص في 'text' أو قائمة فقرات حسب التفسير المستخدم
         tafsir_text = data.get("text") or "لا يوجد تفسير متاح لهذه الآية."
         return tafsir_text
     else:
         return "حدث خطأ في جلب التفسير."
-
-
-
 
 def summarize_tafsir_with_llm(text, surah_name, aya_number):
     """تلخيص التفسير بلغة مبسطة باستخدام LLM"""
@@ -46,6 +41,13 @@ def summarize_tafsir_with_llm(text, surah_name, aya_number):
 def app():
     st.title("📖 تفسير آية من القرآن (بتلخيص مبسط)")
 
+    tafsir_options = {
+        "تفسير ابن كثير": "ar-tafseeribnkatheer",
+        "تفسير السعدي": "ar-tafseersadi",
+        "تفسير الطبري": "ar-tafseertalberi",
+        "تفسير الجلالين": "ar-aljalalayn",
+    }
+
     surah_list = [
         ("الفاتحة", 1),
         ("البقرة", 2),
@@ -54,22 +56,26 @@ def app():
         ("المائدة", 5),
     ]
 
+    tafsir_name = st.selectbox("اختر التفسير", list(tafsir_options.keys()))
+    edition_slug = tafsir_options[tafsir_name]
     surah_name = st.selectbox("اختر السورة", [name for name, _ in surah_list])
     surah_number = dict(surah_list)[surah_name]
     aya_number = st.number_input("اكتب رقم الآية", min_value=1, step=1)
 
     if st.button("عرض التفسير"):
-        st.info("جاري التفسير من مصدر موثوق...")
-        tafsir_text = get_tafsir(surah_number, aya_number)
+        st.info("جاري جلب التفسير من مصدر موثوق...")
+        tafsir_text = get_tafsir(edition_slug, surah_number, aya_number)
 
         if tafsir_text:
-            st.success("✅ تم  التفسير المعتمد.")
+            st.success("✅ تم الحصول على التفسير.")
             st.info("🔁 جاري تلخيص التفسير بلغة مبسطة...")
             simplified = summarize_tafsir_with_llm(tafsir_text, surah_name, aya_number)
 
             if simplified:
                 st.success("📘 التفسير المبسط:")
                 st.markdown(simplified)
+            else:
+                st.warning("لم يتم تلخيص التفسير.")
         else:
             st.error("لم يتم العثور على تفسير للآية المحددة.")
 
