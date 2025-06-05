@@ -6,4 +6,4 @@ matplotlib
 requests
 deep-translator
 beautifulsoup4
-
+crewai
