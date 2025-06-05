@@ -1,21 +1,17 @@
 import streamlit as st
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
-from weasyprint import HTML
-from io import BytesIO
 
 def app():
     st.title("🧠📖 مٌخطط حفظ القرآن")
     st.markdown("خطط حفظك بناءً على قدراتك وعدد الأيام، وسيقوم رفيق القرآن بتقسيم الحفظ لك بطريقة ذكية 💡.")
     
-
     surah_name = st.text_input("اسم السورة", "البقرة")
     from_ayah = st.number_input("من الآية", min_value=1, value=1)
     to_ayah = st.number_input("إلى الآية", min_value=from_ayah, value=7)
-    total_days = st.number_input("(المدة المطلوبة) عدد أيام الحفظ", min_value=1, value=7)
+    total_days = st.number_input("عدد أيام الحفظ", min_value=1, value=7)
     days_per_week = st.slider("كم يوم تحفظ في الأسبوع؟", 1, 7, 5)
     
-
     @st.cache_resource(show_spinner=False)
     def load_model():
         model_name = "aubmindlab/aragpt2-base"
@@ -25,7 +21,6 @@ def app():
     
     tokenizer, model = load_model()
     
-
     def generate_plan(prompt):
         inputs = tokenizer.encode(prompt, return_tensors="pt")
         outputs = model.generate(
@@ -39,9 +34,8 @@ def app():
         )
         return tokenizer.decode(outputs[0], skip_special_tokens=True)
     
-
-    def convert_to_html(plan_text):
-        rows = ""
+    def parse_to_table(plan_text):
+        data = []
         for line in plan_text.split("\n"):
             if "اليوم" in line and "-" in line:
                 parts = line.split("-")
@@ -49,38 +43,9 @@ def app():
                     day = parts[0].strip()
                     verses = parts[1].strip()
                     note = parts[2].strip() if len(parts) > 2 else ""
-                    rows += f"<tr><td>{day}</td><td>{verses}</td><td>{note}</td></tr>\n"
+                    data.append({"اليوم": day, "الآيات": verses, "ملاحظات": note})
+        return data
     
-        html_template = f"""
-        <html lang="ar" dir="rtl">
-        <head>
-            <meta charset="utf-8">
-            <style>
-                body {{ font-family: 'Amiri', 'Arial', sans-serif; direction: rtl; text-align: right; }}
-                table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-                th, td {{ border: 1px solid #444; padding: 8px; }}
-                th {{ background-color: #f0f0f0; }}
-            </style>
-        </head>
-        <body>
-            <h2>خطة الحفظ الذكي لسورة {surah_name}</h2>
-            <table>
-                <tr><th>اليوم</th><th>الآيات</th><th>ملاحظات</th></tr>
-                {rows}
-            </table>
-        </body>
-        </html>
-        """
-        return html_template
-    
-
-    def create_pdf_from_html(html_content):
-        pdf_io = BytesIO()
-        HTML(string=html_content).write_pdf(target=pdf_io)
-        pdf_io.seek(0)
-        return pdf_io
-    
-
     if st.button("أنشئ الخطة الذكية ✨"):
         with st.spinner("جاري توليد الخطة..."):
             try:
@@ -96,12 +61,15 @@ def app():
                 st.markdown("### ✨ خطة الحفظ الذكي:")
                 st.text(plan_text)
     
-                html_plan = convert_to_html(plan_text)
-                pdf_data = create_pdf_from_html(html_plan)
+                table_data = parse_to_table(plan_text)
+                if table_data:
+                    st.table(table_data)
+                else:
+                    st.info("لم أتمكن من تحويل الخطة إلى جدول. ربما تحتاج تعديل التنسيق قليلاً.")
     
-                st.download_button("📄 تحميل الخطة كـ PDF", data=pdf_data, file_name="خطة_الحفظ.pdf", mime="application/pdf")
             except Exception as e:
                 st.error(f"حدث خطأ: {str(e)}")
+
 
 
 if __name__ == "__main__":
