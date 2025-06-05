@@ -3,5 +3,4 @@ torch
 transformers
 pandas
 matplotlib
-
-
+requests
