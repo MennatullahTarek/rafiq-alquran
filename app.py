@@ -6,7 +6,7 @@ st.set_page_config(page_title="رفيق القرآن", layout="wide")
 st.sidebar.title("القائمة الرئيسية")
 page = st.sidebar.radio("اختر الصفحة:", [
     "لوحة التحكم",
-    "التلاوة",
+    "لاستماع",
     "مُخطط الحفظ"
 ])
 
@@ -15,8 +15,8 @@ if page == "لوحة التحكم":
     dash.app()
 
 elif page == "التلاوة":
-    import safahat.tilawa_02 as tilawa
-    tilawa.app()
+    import safahat.estimaa_02 as estimaa
+    estimaa.app()
 
 elif page == "مُخطط الحفظ":
     import safahat.hifz_planner_03 as hifz
