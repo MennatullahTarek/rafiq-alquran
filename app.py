@@ -8,7 +8,7 @@ page = st.sidebar.radio("اختر الصفحة:", [
     "لوحة التحكم",
     "الاستماع",
     "مُخطط الحفظ",
-   "التفسير"
+   "مُساعد الحفظ (تكرار)"
 ])
 
 if page == "لوحة التحكم":
@@ -23,6 +23,6 @@ elif page == "مُخطط الحفظ":
     import safahat.hifz_planner_03 as hifz
     hifz.app()
 
-elif page ==  "التفسير":
-    import safahat.tafsir_04 as tafsir
-    tafsir.app()
+elif page ==  "مُساعد الحفظ (تكرار)":
+    import safahat.hifz_helper_04 as helper
+    helper.app()
