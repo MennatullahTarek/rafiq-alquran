@@ -3,15 +3,18 @@ import requests
 
 def get_tafsir(surah_number, aya_number):
     """جلب التفسير من Quran.com API (تفسير السعدي)"""
-    url = f"https://api.quran.com:443/v4/verses/{aya_number}/tafsirs"
-    params = {"language": "ar", "tafsir_id": 169"}  # 169 = تفسير السعدي
-    response = requests.get(url, params=params)
+    tafsir_id = 169  # تفسير السعدي
+    verse_key = f"{surah_number}:{aya_number}"
+    url = f"https://api.quran.com:443/v4/quran/tafsirs/{tafsir_id}?verse_key={verse_key}"
+    
+    response = requests.get(url)
     
     if response.status_code == 200:
         data = response.json()
-        if data["tafsirs"]:
-            return data["tafsirs"][0]["text"]
+        if "tafsir" in data and "text" in data["tafsir"]:
+            return data["tafsir"]["text"]
     return None
+
 
 def summarize_tafsir_with_llm(text, surah_name, aya_number):
     """تلخيص التفسير بلغة مبسطة باستخدام LLM"""
