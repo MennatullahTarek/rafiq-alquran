@@ -95,7 +95,7 @@ def app():
             st.session_state.started = True
             st.session_state.current_ayah = st.session_state.start_ayah
             st.session_state.responses = []
-            st.experimental_rerun()
+            st.rerun()
     else:
         surah_num = surahs[st.session_state.surah_name]
         ayah_num = st.session_state.current_ayah
