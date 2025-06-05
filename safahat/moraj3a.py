@@ -6,9 +6,9 @@ import csv
 from io import StringIO
 from huggingface_hub import InferenceClient
 
-# Agent 4: LLM Helper 
+# Agent 4: LLM Helper
 class LLMHelper:
-    def __init__(self, hf_token, model="HuggingFaceH4/zephyr-7b-beta"):
+    def __init__(self, hf_token, model="tiiuae/falcon-7b-instruct"):
         self.client = InferenceClient(token=hf_token)
         self.model = model
 
@@ -16,11 +16,11 @@ class LLMHelper:
         try:
             response = self.client.text_generation(
                 model=self.model,
-                inputs=prompt,
+                prompt=prompt,  # صححت هنا: 'prompt' بدل 'inputs'
                 max_new_tokens=100,
                 temperature=0.7
             )
-            # response هو dict، النص في response['generated_text']
+            # غالباً النتيجة تحت المفتاح 'generated_text'
             return response.get('generated_text', '').strip()
         except Exception as e:
             return f"خطأ في التوليد: {str(e)}"
@@ -33,8 +33,8 @@ def get_surahs():
         "الناس": 114
     }
 
-def get_ayah_text(surah_num, ayah_num):
-    url = f"https://api.quran.com/api/v4/quran/verses/uthmani?verse_key={surah_num}:{ayah_num}"
+def get_ayah_text(surah, ayah):
+    url = f"https://api.quran.com/api/v4/quran/verses/uthmani?verse_key={surah}:{ayah}"
     response = requests.get(url)
     if response.status_code == 200:
         try:
@@ -44,8 +44,8 @@ def get_ayah_text(surah_num, ayah_num):
     return "❌ فشل الاتصال بنص الآية."
 
 # Agent 2: تفسير
-def get_tafsir(surah_num, ayah_num, tafsir_id=91):
-    url = f"https://api.quran.com/api/v4/tafsirs/{tafsir_id}/by_ayah/{surah_num}:{ayah_num}"
+def get_tafsir(surah, ayah, tafsir_id=91):
+    url = f"https://api.quran.com/api/v4/tafsirs/{tafsir_id}/by_ayah/{surah}:{ayah}"
     response = requests.get(url)
     if response.status_code == 200:
         try:
@@ -55,8 +55,8 @@ def get_tafsir(surah_num, ayah_num, tafsir_id=91):
     return "❌ فشل الاتصال بالتفسير."
 
 # أدوات تقييم الحفظ
-
 def strip_tashkeel(text):
+    # إزالة التشكيل
     return re.sub(r'[\u064B-\u0652]', '', text)
 
 def compare_ayah(user_input, actual_text):
@@ -65,17 +65,7 @@ def compare_ayah(user_input, actual_text):
     ratio = difflib.SequenceMatcher(None, actual_clean, user_clean).ratio()
     return round(ratio * 100, 2)
 
-# تقسيم الآية بحيث لا يتم قطع الكلمة (تقريباً عند أقرب فراغ)
-def split_ayah_text(text, split_at=15):
-    if len(text) <= split_at:
-        return text, ""
-    space_pos = text.rfind(" ", 0, split_at)
-    if space_pos == -1:
-        space_pos = split_at
-    return text[:space_pos], text[space_pos:].strip()
-
 # التطبيق الرئيسي
-
 def app():
     st.title("📖 رفيق القرآن - مراجعة وحفظ وتفسير")
 
@@ -83,6 +73,7 @@ def app():
     llm_helper = LLMHelper(hf_token)
     surahs = get_surahs()
 
+    # الحفاظ على حالة التطبيق
     if 'started' not in st.session_state:
         st.session_state.started = False
 
@@ -93,76 +84,59 @@ def app():
 
         if st.button("ابدأ الإختبار"):
             st.session_state.started = True
-            st.session_state.current_ayah = st.session_state.start_ayah
-            st.session_state.responses = []
             st.rerun()
     else:
-        surah_num = surahs[st.session_state.surah_name]
-        ayah_num = st.session_state.current_ayah
+        responses = []
 
-        actual_ayah = get_ayah_text(surah_num, ayah_num)
-        tafsir = get_tafsir(surah_num, ayah_num)
+        for ayah_num in range(st.session_state.start_ayah, st.session_state.end_ayah + 1):
+            st.subheader(f"الآية {ayah_num}")
+            actual_ayah = get_ayah_text(surahs[st.session_state.surah_name], ayah_num)
+            tafsir = get_tafsir(surahs[st.session_state.surah_name], ayah_num)
 
-        # تقسيم الآية بطريقة لا تقطع كلمة
-        prefix, remainder = split_ayah_text(actual_ayah, split_at=15)
-        st.markdown(f"### 🧠 اختبار الحفظ - أكمل بعد: **{prefix}...**")
-
-        user_mem = st.text_area(f"أكمل الآية رقم {ayah_num}:", key=f"mem_{ayah_num}", height=100)
-
-        score = "-"
-        if user_mem:
-            full_input = prefix + " " + user_mem
-            score = compare_ayah(full_input, actual_ayah)
-            st.markdown(f"✅ تقييم الحفظ: **{score}%**")
-
-        st.markdown("### 📘 التفسير")
-        user_tafsir = st.text_area(f"اشرح معنى الآية رقم {ayah_num} أو الكلمات:", key=f"tafsir_{ayah_num}", height=100)
-
-        correction = ""
-        if user_tafsir:
-            prompt = f"قارن التفسير التالي بالتفسير الرسمي: '''{user_tafsir}'''. التفسير الرسمي: '''{tafsir}'''. قيمه من ١٠ مع تصحيح الأخطاء."
-            correction = llm_helper.ask(prompt)
-            st.markdown("🧾 تقييم التفسير:")
-            st.write(correction)
-
-        if st.button("التالي"):
-            # حفظ الردود الحالية
-            st.session_state.responses.append({
-                "السورة": st.session_state.surah_name,
-                "رقم الآية": ayah_num,
-                "محاولة الحفظ": user_mem,
-                "تقييم الحفظ": f"{score}%",
-                "محاولة التفسير": user_tafsir,
-                "تقييم التفسير": correction
-            })
-            # تحديث رقم الآية التالي
-            if ayah_num < st.session_state.end_ayah:
-                st.session_state.current_ayah += 1
+            # تقسيم الآية بطريقة لا تقطع الكلمة
+            words = actual_ayah.split()
+            if len(words) > 2:
+                # نأخذ أقرب نقطة بعد الكلمة الثانية
+                partial_text = " ".join(words[:2])
             else:
-                st.session_state.started = False  # انتهاء الاختبار
-            st.experimental_rerun()
+                partial_text = actual_ayah
 
-      
-        if not st.session_state.started and st.session_state.responses:
-            csv_buffer = StringIO()
-            writer = csv.writer(csv_buffer)
-            writer.writerow(["السورة", "رقم الآية", "محاولة الحفظ", "تقييم الحفظ", "محاولة التفسير", "تقييم التفسير"])
-            for res in st.session_state.responses:
-                writer.writerow([
-                    res["السورة"],
-                    res["رقم الآية"],
-                    res["محاولة الحفظ"],
-                    res["تقييم الحفظ"],
-                    res["محاولة التفسير"],
-                    res["تقييم التفسير"]
-                ])
+            st.markdown(f"### 🧠 اختبار الحفظ - أكمل بعد: **{partial_text}...**")
+            user_mem = st.text_area("أكمل الآية الكريمة:", key=f"mem_{ayah_num}")
 
-            st.download_button(
-                label="💾 تحميل النتيجة",
-                data=csv_buffer.getvalue(),
-                file_name="quran_review_results.csv",
-                mime="text/csv"
-            )
+            score = "-"
+            if user_mem:
+                full_input = partial_text + " " + user_mem
+                score = compare_ayah(full_input, actual_ayah)
+                st.markdown(f"✅ تقييم الحفظ: **{score}%**")
 
-if __name__ == "__main__":
-    app()
+            st.markdown("### 📘 التفسير")
+            user_tafsir = st.text_area("اشرح معنى الآية أو الكلمات:", key=f"tafsir_{ayah_num}")
+            correction = "-"
+            if user_tafsir:
+                prompt = f"قارن التفسير التالي بالتفسير الرسمي: '{user_tafsir}'. التفسير الرسمي: '{tafsir}'. قيمه من ١٠ مع تصحيح الخطأ."
+                correction = llm_helper.ask(prompt)
+                st.markdown("🧾 تقييم التفسير:")
+                st.write(correction)
+
+            responses.append([
+                st.session_state.surah_name,
+                ayah_num,
+                user_mem,
+                f"{score}%",
+                user_tafsir,
+                correction
+            ])
+
+        # توليد ملف CSV للتحميل
+        csv_buffer = StringIO()
+        writer = csv.writer(csv_buffer)
+        writer.writerow(["السورة", "رقم الآية", "محاولة الحفظ", "تقييم الحفظ", "محاولة التفسير", "تقييم التفسير"])
+        writer.writerows(responses)
+
+        st.download_button(
+            label="💾 تحميل النتيجة",
+            data=csv_buffer.getvalue(),
+            file_name="quran_review_results.csv",
+            mime="text/csv"
+        )
