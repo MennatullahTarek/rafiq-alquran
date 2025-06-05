@@ -6,6 +6,26 @@ import csv
 from io import StringIO
 from transformers import pipeline
 
+# --- Agent: Text Processing ---
+class TextProcessor:
+    @staticmethod
+    def strip_tashkeel(text):
+        return re.sub(r'[\u064B-\u0652]', '', text)
+
+    @staticmethod
+    def compare_ayah(user_input, actual_text):
+        actual_clean = TextProcessor.strip_tashkeel(actual_text.replace('\n', '').strip())
+        user_clean = TextProcessor.strip_tashkeel(user_input.replace('\n', '').strip())
+        similarity_ratio = difflib.SequenceMatcher(None, actual_clean, user_clean).ratio()
+        return round(similarity_ratio * 100, 2)
+
+    @staticmethod
+    def extract_score_from_text(text):
+        match = re.search(r'(\d+(?:\.\d+)?)\s*/\s*10', text)
+        if match:
+            return round(float(match.group(1)) * 10, 2)  # كنسبة مئوية
+        return None
+
 # --- Agent 1: LLM Helper ---
 class LLMHelper:
     def __init__(self):
@@ -41,24 +61,6 @@ class TafsirFetcher:
                 return "⚠️ لم يتم العثور على التفسير."
         return "❌ فشل الاتصال بجلب التفسير."
 
-# --- إزالة التشكيل ---
-def strip_tashkeel(text):
-    return re.sub(r'[\u064B-\u0652]', '', text)
-
-# --- مقارنة نص الآية مع محاولة المستخدم ---
-def compare_ayah(user_input, actual_text):
-    actual_clean = strip_tashkeel(actual_text.replace('\n', '').strip())
-    user_clean = strip_tashkeel(user_input.replace('\n', '').strip())
-    similarity_ratio = difflib.SequenceMatcher(None, actual_clean, user_clean).ratio()
-    return round(similarity_ratio * 100, 2)
-
-# --- استخراج تقييم التفسير كنسبة ---
-def extract_score_from_text(text):
-    match = re.search(r'(\d+(?:\.\d+)?)\s*/\s*10', text)
-    if match:
-        return round(float(match.group(1)) * 10, 2)  # كنسبة مئوية
-    return None
-
 # --- جلب سور القرآن ---
 def get_surahs():
     return {
@@ -76,6 +78,7 @@ def app():
     llm_helper = LLMHelper()
     ayah_fetcher = AyahFetcher()
     tafsir_fetcher = TafsirFetcher()
+    text_processor = TextProcessor()
     surahs = get_surahs()
 
     if 'started' not in st.session_state:
@@ -114,7 +117,7 @@ def app():
 
             if user_input.strip():
                 full_input = prompt_prefix + " " + user_input.strip()
-                score = compare_ayah(full_input, actual_ayah)
+                score = text_processor.compare_ayah(full_input, actual_ayah)
                 st.success(f"✅ تقييم الحفظ: **{score}%**")
             else:
                 score = "-"
@@ -128,8 +131,8 @@ def app():
                     f"قيّمه من ١٠ مع تصحيح الأخطاء إن وُجدت."
                 )
                 correction = llm_helper.ask(llm_prompt)
-                score_tafsir = extract_score_from_text(correction)
-                
+                score_tafsir = text_processor.extract_score_from_text(correction)
+
                 if score_tafsir is not None:
                     st.success(f"✅ تقييم التفسير: **{score_tafsir}%**")
                 else:
