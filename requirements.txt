@@ -6,3 +6,4 @@ matplotlib
 requests
 deep-translator
 BeautifulSoup
+lxml
