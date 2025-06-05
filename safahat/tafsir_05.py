@@ -7,7 +7,7 @@ def get_tafsir_en(surah_num, ayah_num):
     if response.status_code == 200:
         data = response.json()
         if "data" in data and len(data["data"]) > 0:
-            tafsir_en = data["data"].get("text", None)
+            tafsir_en = data["data"][0].get("text", None)
             if tafsir_en:
                 return tafsir_en
             else:
@@ -57,6 +57,7 @@ def app():
     if st.button("عرض التفسير وترجمته"):
         st.info("جاري جلب التفسير الإنجليزي...")
         tafsir_en = get_tafsir_en(surah_number, aya_number)
+        
 
         if tafsir_en is None:
             st.error("❌ لم يتم العثور على تفسير في هذه الصفحة أو حدث خطأ في الاتصال.")
