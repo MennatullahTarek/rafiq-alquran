@@ -137,7 +137,7 @@ def get_audio_url(reader_slug, server_num, surah_num):
 
 
 def app():
-    st.title("تلاوة واستماع")
+    st.title(" القارئ ")
 
     reader_choice = st.selectbox("🎙️ اختر القارئ:", list(readers.keys()))
     surah_choice = st.selectbox("📖 اختر السورة:", list(surahs.keys()))
