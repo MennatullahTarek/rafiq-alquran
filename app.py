@@ -112,10 +112,23 @@ if current_page == "🏠 الرئيسية":
 else:
     load_page(current_page)
 
-# شريط التنقل السفلي
-footer_html = ""
+# شريط التنقل السفلي (باستخدام JS لعدم فتح تاب جديد)
+footer_html = """
+<script>
+    function goToPage(page) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', page);
+        window.location.href = url.toString();  // نفس التاب
+    }
+</script>
+<div class="bottom-nav">
+"""
+
 for page_name in pages.keys():
     active = "active" if page_name == current_page else ""
-    footer_html += f'<a href="/?page={page_name}" class="{active}">{page_name}</a>'
+    footer_html += f'<a onclick="goToPage(\'{page_name}\')" class="{active}">{page_name}</a>'
 
-st.markdown(f'<div class="bottom-nav">{footer_html}</div>', unsafe_allow_html=True)
+footer_html += "</div>"
+
+st.markdown(footer_html, unsafe_allow_html=True)
+
