@@ -1,94 +1,79 @@
 import streamlit as st
 from PIL import Image
+import requests
+from io import BytesIO
 
-# -------------------- Page Configuration --------------------
+# ---------- إعداد الصفحة ----------
 st.set_page_config(page_title="رفيق القرآن", layout="wide")
 
-# -------------------- Theme Colors --------------------
-primary_color = "#2E7D32"    # Olive Green (spiritual peace)
-secondary_color = "#009688"  # Turquoise (calm)
-accent_color = "#FFC107"     # Warm Gold (luxury)
-background_color = "#F3EFE5" # Light Cream Beige (purity)
+# ---------- الألوان والثيم ----------
+primary_color = "#2E7D32"    # أخضر زيتوني غامق
+secondary_color = "#009688"  # تركوازي
+accent_color = "#FFC107"     # ذهبي دافئ
+background_color = "#F3EFE5" # بيج كريمي فاتح
 
-# -------------------- Background & Styling --------------------
-background_image_url = "https://png.pngtree.com/png-clipart/20220223/original/pngtree-moslem-kid-read-quran-png-image_7311235.png"
+# ---------- تحميل صورة الهيدر ----------
+image_url = "https://png.pngtree.com/png-clipart/20220223/original/pngtree-moslem-kid-read-quran-png-image_7311235.png"
+response = requests.get(image_url)
+header_image = Image.open(BytesIO(response.content))
+
+# ---------- تنسيق مخصص ----------
 st.markdown(f"""
     <style>
-        .stApp {{
-            background-color: {background_color};
-            background-image: url('{background_image_url}');
-            background-size: 180px;
-            background-position: bottom left;
-            background-repeat: no-repeat;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }}
-        .main-title {{
-            color: {primary_color};
-            font-size: 40px;
-            font-weight: bold;
-            text-align: center;
-            margin-top: 20px;
-        }}
-        .quote {{
-            font-size: 18px;
-            color: {secondary_color};
-            text-align: center;
-            margin-bottom: 30px;
-            font-style: italic;
-        }}
-        .header-bar {{
-            background-color: {primary_color};
-            padding: 12px 25px;
-            border-bottom: 3px solid {accent_color};
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 999;
-        }}
-        .header-title {{
-            font-size: 22px;
-            font-weight: bold;
-        }}
-        .quick-links a {{
-            color: white;
-            margin-left: 25px;
-            text-decoration: none;
-            font-weight: 500;
-        }}
-        .quick-links a:hover {{
-            text-decoration: underline;
-            color: {accent_color};
-        }}
-        .block-container {{
-            padding-top: 100px !important;
-        }}
-        .sidebar .sidebar-content {{
-            padding-top: 30px;
-        }}
+    .main-title {{
+        color: {primary_color};
+        font-size: 42px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 20px;
+    }}
+    .quote {{
+        font-size: 18px;
+        color: {secondary_color};
+        text-align: center;
+        margin-bottom: 25px;
+        font-style: italic;
+    }}
+    .header-container {{
+        background-color: {primary_color};
+        padding: 15px 30px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }}
+    .header-text {{
+        color: white;
+        font-size: 26px;
+        font-weight: bold;
+        margin-left: 20px;
+    }}
+    .section-divider {{
+        border-top: 2px solid {accent_color};
+        margin: 30px 0;
+    }}
+    .sidebar .sidebar-content {{
+        background-color: #fff7e6;
+        padding: 20px;
+        border-radius: 10px;
+    }}
     </style>
 """, unsafe_allow_html=True)
 
-# -------------------- Header --------------------
-st.markdown("""
-<div class="header-bar">
-    <div class="header-title">📖 رفيق القرآن</div>
-    <div class="quick-links">
-        <a href="#">🏠 الرئيسية</a>
-        <a href="#sidebar">📚 القائمة</a>
-        <a href="#footer">🕋 تواصل</a>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# ---------- شريط علوي ----------
+col1, col2 = st.columns([1, 8])
+with col1:
+    st.image(header_image, width=70)
+with col2:
+    st.markdown("""
+    <div class="header-text">📖 رفيق القرآن</div>
+    """, unsafe_allow_html=True)
 
-# -------------------- Welcome & Quote --------------------
+# ---------- عنوان رئيسي واقتباس ----------
 st.markdown('<div class="main-title">مرحباً بك في تطبيق رفيق القرآن 🌙</div>', unsafe_allow_html=True)
 st.markdown('<div class="quote">"خيركم من تعلم القرآن وعلمه" – النبي محمد ﷺ</div>', unsafe_allow_html=True)
 
-# -------------------- Sidebar --------------------
+# ---------- تعريف الصفحات ----------
 pages = {
     "لوحة التحكم": "ملخص شامل وإحصائيات التطبيق",
     "الاستماع": "استمع إلى التلاوات الصوتية",
@@ -99,15 +84,20 @@ pages = {
     "سؤال قرآنى": "اسأل أي سؤال عن القرآن واستفد"
 }
 
+# ---------- القائمة الجانبية ----------
 st.sidebar.title("📌 القائمة الرئيسية")
 page = st.sidebar.radio("اختر الصفحة:", list(pages.keys()))
 
+# وصف مختصر تحت الاختيار الحالي
 for p, desc in pages.items():
     if p == page:
         st.sidebar.markdown(f'<span style="color:{secondary_color}; font-size:13px;">{desc}</span>', unsafe_allow_html=True)
         break
 
-# -------------------- Page Loading --------------------
+# ---------- فاصل مرئي ----------
+st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+
+# ---------- تحميل الصفحة المختارة ----------
 if page == "لوحة التحكم":
     import safahat.dash_01 as dash
     dash.app()
@@ -129,11 +119,3 @@ elif page == "لعبة المراجعة":
 elif page == "سؤال قرآنى":
     import safahat.ask_quran as ask
     ask.app()
-
-# -------------------- Footer --------------------
-st.markdown("""
-<hr style="border: none; border-top: 1px solid #ccc; margin: 50px 0 10px;"/>
-<div id="footer" style="text-align:center; font-size: 13px; color: #666;">
-    تم التطوير بواسطة فريق <strong>رفيق القرآن</strong> © 2025
-</div>
-""", unsafe_allow_html=True)
