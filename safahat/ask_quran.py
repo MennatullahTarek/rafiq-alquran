@@ -29,13 +29,13 @@ def get_context_from_surah(surah_name, surah_data):
             )
     return ""
 
-# تحميل موديل LLM (QA model)
+# تحميل موديل LLM
 @st.cache_resource
 def load_llm_model():
     return pipeline(
         "question-answering",
-        model="akhooli/bert-base-arabic-qa",
-        tokenizer="akhooli/bert-base-arabic-qa"
+        model="asafaya/bert-base-arabic",
+        tokenizer="asafaya/bert-base-arabic"
     )
 
 # توليد الرد من الموديل والسياق
@@ -80,13 +80,12 @@ def app():
         st.markdown(f"👤 **أنت**: {user_msg}")
         st.markdown(f"🤖 **رفيق**: {bot_msg}")
 
-    # إدخال المستخدم (مع مفتاح لتجنب التكرار)
+    # إدخال المستخدم
     user_input = st.text_input("💬 أكتب رسالتك هنا:", key="user_input")
 
     if user_input:
         response = generate_response(user_input, surah_data, qa_pipeline)
         st.session_state.chat_history.append((user_input, response))
-        # نمسح الرسالة بعد الرد لتفادي التكرار
         st.session_state.user_input = ""
         st.rerun()
 
