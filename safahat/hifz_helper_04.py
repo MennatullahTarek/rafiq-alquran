@@ -78,26 +78,25 @@ class HifzAgent:
 def display_ui(agent):
     # ثيم وخطوط ويمين لليسار
     st.markdown("""
-        <style>
-        body, .stApp {
-            background-color: #F5F5F5;
-            direction: rtl;
-            font-family: 'Cairo', sans-serif;
-        }
-        .main-title {
-            color: #2E7D32;
-            font-size: 2.3rem;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #555;
-            font-size: 1.1rem;
-            margin-bottom: 25px;
-        }
-       
+    <style>
+    body, .stApp {
+        background-color: #F5F5F5;
+        direction: rtl;
+        font-family: 'Cairo', sans-serif;
+    }
+    .main-title {
+        color: #2E7D32;
+        font-size: 2.3rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .subtitle {
+        text-align: center;
+        color: #555;
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+    }
 
     button[kind="primary"] {
         background-color: #2E7D32 !important;
@@ -124,10 +123,10 @@ def display_ui(agent):
         border-color: #1B5E20;
         transform: scale(1.03);
     }
-  
 
-        </style>
-    """, unsafe_allow_html=True)
+    </style>
+""", unsafe_allow_html=True)
+
 
     st.markdown('<div class="main-title">🎧 مساعد الحفظ الذكي</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">اختر السورة والآية واستمع إليها وكررها بسهولة ✨</div>', unsafe_allow_html=True)
