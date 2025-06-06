@@ -154,8 +154,10 @@ def app():
     st.markdown('<div class="fade-in container">', unsafe_allow_html=True)
 
     # Title centered vertically and horizontally
-    st.markdown("""
-    <h1 class="title">رفيق القرآن</h1>
+       st.markdown("""
+    <div class="title">
+        <h3>  رفيق القرآن</h3>
+    </div>
     """, unsafe_allow_html=True)
 
     st.markdown('<p class="subtitle">رحلتك السهلة والممتعة لحفظ وتدبر كتاب الله</p>', unsafe_allow_html=True)
