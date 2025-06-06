@@ -12,6 +12,10 @@ def app():
     
     st.markdown(f"""
     <style>
+        html, body, .main {{
+            height: 100%;
+            background-color: {theme['background']};
+        }}
         .fade-in {{
             animation: fadeIn 0.9s ease-in-out;
         }}
@@ -20,10 +24,10 @@ def app():
             to {{ opacity: 1; transform: translateY(0); }}
         }}
         .container {{
-            max-width: 720px;
+            max-width: 600px;
             margin: 80px auto 60px auto;
             background-color: white;
-            padding: 40px 50px 50px 50px;
+            padding: 40px 40px 50px 40px;
             border-radius: 15px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.12);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -32,17 +36,18 @@ def app():
             display: flex;
             flex-direction: column;
             align-items: center;
+            text-align: center;
         }}
         .title {{
             color: {theme['primary']};
             font-size: 3rem;
             font-weight: 900;
             margin-bottom: 5px;
-            text-align: center;
             letter-spacing: 1.1px;
             display: flex;
             align-items: center;
             gap: 10px;
+            justify-content: center;
         }}
         .title img {{
             width: 48px;
@@ -52,14 +57,14 @@ def app():
             color: {theme['secondary']};
             font-size: 1.2rem;
             font-style: italic;
-            text-align: center;
             margin-bottom: 40px;
-            max-width: 600px;
+            max-width: 100%;
         }}
         .features {{
             list-style: none;
             padding: 0;
-            max-width: 600px;
+            max-width: 100%;
+            text-align: right;
         }}
         .features li {{
             background: {theme['highlight']};
@@ -72,6 +77,7 @@ def app():
             box-shadow: 0 3px 8px rgba(46, 125, 50, 0.15);
             position: relative;
             transition: background-color 0.3s ease;
+            direction: rtl;
         }}
         .features li:hover {{
             background-color: {theme['accent']};
@@ -102,14 +108,16 @@ def app():
             display: block;
             filter: drop-shadow(0 0 8px {theme['primary']});
             transition: transform 0.4s ease;
+            border-radius: 15px;
         }}
         .image-section img:hover {{
             transform: scale(1.05);
         }}
         .why-choose {{
-            max-width: 650px;
+            max-width: 100%;
             margin-bottom: 40px;
             text-align: center;
+            direction: rtl;
         }}
         .why-choose h3 {{
             color: {theme['primary']};
@@ -190,10 +198,10 @@ def app():
     </ul>
     """, unsafe_allow_html=True)
 
-    # Image section
+    # Image section with new Quran-related image
     st.markdown("""
     <div class="image-section">
-        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80" alt="Reading Quran" />
+        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80" alt="Quran Reading" />
     </div>
     """, unsafe_allow_html=True)
 
