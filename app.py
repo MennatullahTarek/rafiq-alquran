@@ -43,7 +43,7 @@ def load_page(page_key):
         mod.app()
 
 # استدعاء الصفحة المختارة من الـ query params أو افتراضي "🏠 الرئيسية"
-query_params = st.experimental_get_query_params()
+query_params = st.query_params
 current_page = query_params.get("page", ["🏠 الرئيسية"])[0]
 if current_page not in pages:
     current_page = "🏠 الرئيسية"
@@ -126,7 +126,6 @@ else:
 footer_links = ""
 for page_name in pages.keys():
     active_class = "active" if page_name == current_page else ""
-    # هنا الرابط يحتوي على استعلام "?page=اسم_الصفحة" ليتعرف على الصفحة المختارة ويتحكم في المحتوى بدون إعادة تحميل الصفحة كاملة
     footer_links += f'<a href="?page={page_name}" class="{active_class}">{page_name}</a>'
 
 st.markdown(f'<div class="bottom-nav">{footer_links}</div>', unsafe_allow_html=True)
