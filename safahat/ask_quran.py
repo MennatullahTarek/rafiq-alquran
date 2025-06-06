@@ -4,10 +4,10 @@ import re
 from transformers import pipeline
 import nest_asyncio
 
-# حل مشكلة event loop مع Streamlit
+
 nest_asyncio.apply()
 
-# تحميل بيانات السور من JSON
+
 @st.cache_resource
 def load_surah_data(filepath="surah_info.json"):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -88,7 +88,7 @@ def app():
     if user_input:
         response = generate_response(user_input, surah_data, llm)
         st.session_state.chat_history.append((user_input, response))
-        st.experimental_rerun()
+        st.rerun()
 
 if __name__ == "__main__":
     app()
