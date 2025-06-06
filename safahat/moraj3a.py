@@ -12,7 +12,6 @@ from io import StringIO
 class TextProcessor:
     @staticmethod
     def strip_tashkeel(text):
-        # remove Arabic diacritics
         return re.sub(r'[\u064B-\u0652]', '', text)
 
     @staticmethod
@@ -57,9 +56,20 @@ def get_surahs():
         "الناس": 114
     }
 
+# --- تقييم مبسط للتفسير ---
+def simple_tafsir_evaluation(user_tafsir, actual_tafsir):
+    if not user_tafsir.strip():
+        return "❌ لم تقم بإدخال تفسير."
+    elif len(user_tafsir.strip().split()) < 5:
+        return "🔸 التفسير قصير جدًا. حاول التوضيح أكثر. التقييم: 3/10"
+    elif any(word in actual_tafsir for word in user_tafsir.strip().split()):
+        return "✅ جيد، التفسير يحتوي على كلمات من التفسير الرسمي. التقييم: 7/10"
+    else:
+        return "❌ التفسير غير واضح أو لا يتطابق مع التفسير الرسمي. التقييم: 4/10"
+
 # --- التطبيق الرئيسي ---
 def app():
-    st.title("رفيق القرآن - مراجعة وحفظ وتفسير")
+    st.title("📖 رفيق القرآن - مراجعة وحفظ وتفسير")
 
     ayah_fetcher = AyahFetcher()
     tafsir_fetcher = TafsirFetcher()
@@ -109,7 +119,8 @@ def app():
 
             st.markdown("### التفسير")
             user_tafsir = st.text_area("اشرح معنى الآية أو الكلمات:", key=f"tafsir_{ayah_num}")
-            st.info("📌 لا يتم تقييم التفسير تلقائيًا حاليًا.")
+            tafsir_eval = simple_tafsir_evaluation(user_tafsir, tafsir_text)
+            st.info(f"🧾 تقييم التفسير: {tafsir_eval}")
 
             responses.append([
                 st.session_state.surah_name,
@@ -117,7 +128,7 @@ def app():
                 user_input,
                 f"{score}%",
                 user_tafsir,
-                "-"
+                tafsir_eval
             ])
 
         csv_buffer = StringIO()
@@ -132,7 +143,7 @@ def app():
             mime="text/csv"
         )
 
-        if st.button("ابدأ من جديد"):
+        if st.button("🔁 ابدأ من جديد"):
             st.session_state.started = False
             st.rerun()
 
