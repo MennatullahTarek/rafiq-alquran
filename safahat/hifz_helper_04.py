@@ -46,7 +46,7 @@ def save_hifz_record(sura, aya):
 
 
 def app():
-    st.set_page_config(page_title="مساعد الحفظ", layout="centered")
+    st.title(page_title="مساعد الحفظ", layout="centered")
 
 
     st.markdown("""
