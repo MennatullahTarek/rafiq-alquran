@@ -73,21 +73,26 @@ def app():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
+    if "user_input" not in st.session_state:
+        st.session_state.user_input = ""
+
     # عرض المحادثة
     for user_msg, bot_msg in st.session_state.chat_history:
         st.markdown(f"👤 **أنت**: {user_msg}")
         st.markdown(f"🤖 **رفيق**: {bot_msg}")
 
     # إدخال المستخدم مع زر إرسال
-    user_input = st.text_input("💬 أكتب رسالتك هنا:", key="user_input")
-    send_button = st.button("إرسال")
+    user_input = st.text_input("💬 أكتب رسالتك هنا:", value=st.session_state.user_input)
+    send_button = st.button("◀️")
 
     if send_button and user_input.strip():
         response = generate_response(user_input, surah_data, qa_pipeline)
         st.session_state.chat_history.append((user_input, response))
-        # تفريغ صندوق النص
-        st.session_state.user_input = ""
-        st.experimental_rerun()
+        st.session_state.user_input = ""  # امسح النص
+        st.rerun()
+
+    else:
+        st.session_state.user_input = user_input  # حافظ على النص الحالي لو ما اتبعتش
 
 if __name__ == "__main__":
     app()
