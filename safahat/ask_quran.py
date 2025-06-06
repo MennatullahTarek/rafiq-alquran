@@ -1,31 +1,43 @@
 import streamlit as st
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
+import torch
 import nest_asyncio
 
+# لحل مشكلة event loop مع Streamlit
 nest_asyncio.apply()
 
-model_name = "aubmindlab/aragpt2-base"
-token = st.secrets["huggingface_token"]
-
+# تحميل النموذج والمحول
 @st.cache_resource
-def load_generator():
-    tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=token)
-    model = AutoModelForCausalLM.from_pretrained(model_name, use_auth_token=token)
-    return pipeline("text-generation", model=model, tokenizer=tokenizer)
+def load_model():
+    tokenizer = AutoTokenizer.from_pretrained("tempdas/QuranGPT")
+    model = AutoModelForCausalLM.from_pretrained("tempdas/QuranGPT")
+    return tokenizer, model
+
+def generate_answer(question, tokenizer, model):
+    input_ids = tokenizer.encode(question, return_tensors="pt")
+    output = model.generate(
+        input_ids,
+        max_length=200,
+        num_return_sequences=1,
+        no_repeat_ngram_size=2,
+        early_stopping=True
+    )
+    answer = tokenizer.decode(output[0], skip_special_tokens=True)
+    return answer
 
 def app():
-    generator = load_generator()
+    tokenizer, model = load_model()
 
     st.title("💬 اسأل عن القرآن")
     st.markdown("أكتب أي سؤال له علاقة بالقرآن الكريم وسنحاول مساعدتك في الإجابة عليه ✨")
 
+    # مدخل السؤال من المستخدم
     question = st.text_input("❓ سؤالك:", placeholder="مثال: كم عدد آيات سورة البقرة؟")
 
     if question:
         with st.spinner("⏳ جاري توليد الإجابة..."):
             try:
-                result = generator(question, max_length=100, num_return_sequences=1)
-                answer = result[0]['generated_text']
+                answer = generate_answer(question, tokenizer, model)
                 st.success(f"✅ الإجابة: {answer}")
             except Exception as e:
                 st.error(f"حدث خطأ أثناء محاولة الإجابة على سؤالك: {e}")
