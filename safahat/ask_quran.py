@@ -1,16 +1,17 @@
 import streamlit as st
-from transformers import pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import nest_asyncio
 
 nest_asyncio.apply()
 
+model_name = "aubmindlab/aragpt2-base"
+token = st.secrets["huggingface_token"]
+
 @st.cache_resource
 def load_generator():
-    return pipeline(
-        "text-generation",
-        model="aubmindlab/aragpt2-base", 
-        use_auth_token=st.secrets["huggingface_token"]
-    )
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=token)
+    model = AutoModelForCausalLM.from_pretrained(model_name, use_auth_token=token)
+    return pipeline("text-generation", model=model, tokenizer=tokenizer)
 
 def app():
     generator = load_generator()
