@@ -90,8 +90,9 @@ class AgentCoordinator:
         }
 
     def run(self):
-        query_params = st.query_params
+        query_params = st.experimental_get_query_params()
         current_page = query_params.get("page", ["🏠 الرئيسية"])[0]
+
 
         if current_page not in self.page_agents:
             current_page = "🏠 الرئيسية"
