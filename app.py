@@ -1,14 +1,14 @@
 import streamlit as st
 import random
 
-# إعداد الصفحة (مع تحديد أيقونة صحيحة)
+# إعداد الصفحة
 st.set_page_config(
     page_title="رفيق القرآن",
     layout="wide",
     page_icon="https://cdn-icons-png.flaticon.com/512/4358/4358773.png"
 )
 
-# ألوان روحانية
+# الألوان
 theme = {
     "primary": "#2E7D32",
     "secondary": "#009688",
@@ -24,7 +24,7 @@ daily_ayahs = [
     "فَاذْكُرُونِي أَذْكُرْكُمْ ﴿١٥٢﴾ - البقرة"
 ]
 
-# صفحات التطبيق بدون لوحة التحكم
+# الصفحات المتاحة (بدون لوحة التحكم)
 pages = {
     "🏠 الرئيسية": None,
     "🎧 الاستماع":       "safahat.estimaa_02",
@@ -35,7 +35,20 @@ pages = {
     "❓ سؤال قرآنى":     "safahat.ask_quran"
 }
 
-# تنسيق CSS متقدم
+# استدعاء صفحة معينة (لو موجودة)
+def load_page(page_key):
+    mod_name = pages.get(page_key)
+    if mod_name:
+        mod = __import__(mod_name, fromlist=['app'])
+        mod.app()
+
+# استدعاء الصفحة المختارة من الـ query params أو افتراضي "🏠 الرئيسية"
+query_params = st.experimental_get_query_params()
+current_page = query_params.get("page", ["🏠 الرئيسية"])[0]
+if current_page not in pages:
+    current_page = "🏠 الرئيسية"
+
+# CSS للتنسيق والأنيميشن
 st.markdown(f"""
 <style>
     .stApp {{background-color: {theme['background']}; font-family: 'Segoe UI', sans-serif;}}
@@ -45,11 +58,41 @@ st.markdown(f"""
     .header-title {{font-size: 26px; font-weight:bold;}}
     .quick-links a {{color:white; margin-left:25px; text-decoration:none; font-weight:500;}}
     .quick-links a:hover {{color: {theme['accent']}; text-decoration: underline;}}
-    .centered-image img {{width:480px; border-radius:20px; box-shadow:0 8px 20px rgba(0,0,0,0.2); transition: transform 0.3s ease; margin-top:80px;}}
+    .centered-image img {{
+        width: 500px;
+        border-radius: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        transition: transform 0.3s ease;
+        margin: 80px auto 40px auto;
+        display: block;
+    }}
     .centered-image img:hover {{transform: scale(1.05);}}
-    .bottom-nav {{position: fixed; bottom:0; left:0; width:100%; background-color: {theme['primary']}; display:flex; justify-content:center; padding:12px 0; border-top:3px solid {theme['accent']}; z-index: 999;}}
-    .bottom-nav a {{color:white; margin:0 15px; text-decoration:none; font-weight:bold; font-size:14px; padding:6px 12px; border-radius:8px; transition: background-color 0.3s; cursor:pointer;}}
-    .bottom-nav a:hover {{background-color:{theme['accent']}; color:black;}}
+    .bottom-nav {{
+        position: fixed; bottom:0; left:0; width:100%;
+        background-color: {theme['primary']};
+        display:flex; justify-content:center;
+        padding:12px 0; border-top:3px solid {theme['accent']};
+        z-index: 999;
+    }}
+    .bottom-nav a {{
+        color:white;
+        margin:0 15px;
+        text-decoration:none;
+        font-weight:bold;
+        font-size:14px;
+        padding:6px 12px;
+        border-radius:8px;
+        transition: background-color 0.3s;
+        cursor:pointer;
+    }}
+    .bottom-nav a:hover {{
+        background-color:{theme['accent']};
+        color:black;
+    }}
+    .bottom-nav a.active {{
+        background-color:{theme['accent']};
+        color:black;
+    }}
     hr {{border:none; border-top:2px solid {theme['secondary']}; margin:25px 0;}}
 </style>
 """, unsafe_allow_html=True)
@@ -65,30 +108,25 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# محتوى الصفحة
-st.markdown('<div class="main-title" id="الرئيسية">  رفيق القرآن : ابدأ رحلتك الآن  ✨</div>', unsafe_allow_html=True)
-st.markdown('<div class="quote">“خيرهم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
+# المحتوى الأساسي للصفحة الرئيسية
+if current_page == "🏠 الرئيسية":
+    st.markdown('<div class="main-title" id="الرئيسية">خيركم من تعلم القرآن وعلمه ✨</div>', unsafe_allow_html=True)
+    st.markdown('<div class="quote">“خيرهم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="centered-image">
+        <img src="https://png.pngtree.com/png-clipart/20220223/original/pngtree-moslem-kid-read-quran-png-image_7311235.png" alt="Quran Kid">
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="quote" id="مقتطف">🌟 مقتطف اليوم: {random.choice(daily_ayahs)}</div>', unsafe_allow_html=True)
+    st.markdown("<hr />", unsafe_allow_html=True)
+else:
+    load_page(current_page)
 
-st.markdown("""
-<div class="centered-image">
-    <img src="https://png.pngtree.com/png-clipart/20220223/original/pngtree-moslem-kid-read-quran-png-image_7311235.png" alt="Quran Kid">
-</div>
-""", unsafe_allow_html=True)
+# Footer التنقل مع حفظ الحالة (current page)
+footer_links = ""
+for page_name in pages.keys():
+    active_class = "active" if page_name == current_page else ""
+    # هنا الرابط يحتوي على استعلام "?page=اسم_الصفحة" ليتعرف على الصفحة المختارة ويتحكم في المحتوى بدون إعادة تحميل الصفحة كاملة
+    footer_links += f'<a href="?page={page_name}" class="{active_class}">{page_name}</a>'
 
-st.markdown(f'<div class="quote" id="مقتطف">🌟 مقتطف اليوم: {random.choice(daily_ayahs)}</div>', unsafe_allow_html=True)
-st.markdown("<hr />", unsafe_allow_html=True)
-
-# تحميل صفحة مختارة حسب النقر على الفوتر
-query_params = st.experimental_get_query_params()
-selected_page = query_params.get("page", ["🏠 الرئيسية"])[0]
-
-if selected_page in pages and pages[selected_page]:
-    mod = __import__(pages[selected_page], fromlist=['app'])
-    mod.app()
-
-# شريط تنقل سفلي متفاعل مع روابط تنقل تحافظ على نفس الصفحة (بدون إعادة تحميل)
-links_html = ""
-for name in pages.keys():
-    links_html += f'<a href="?page={name}">{name}</a>'
-
-st.markdown(f'<div class="bottom-nav">{links_html}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="bottom-nav">{footer_links}</div>', unsafe_allow_html=True)
