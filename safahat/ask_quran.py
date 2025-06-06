@@ -88,7 +88,7 @@ def app():
         st.session_state.chat_history.append((user_input, response))
         # نمسح الرسالة بعد الرد لتفادي التكرار
         st.session_state.user_input = ""
-        st.experimental_rerun()
+        st.rerun()
 
 if __name__ == "__main__":
     app()
