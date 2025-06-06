@@ -100,8 +100,8 @@ st.markdown(f"""
         border-top: 3px solid {theme['accent']};
         z-index: 999;
 
-        direction: ltr;
-        text-align: left;
+        direction: rtl;
+        text-align: right;
     }}
     .bottom-nav a {{
         color: white;
@@ -137,7 +137,7 @@ st.markdown('<div class="fade-in">', unsafe_allow_html=True)
 
 if current_page == "🏠 الرئيسية":
     st.markdown('<div class="main-title" style="margin-top:70px;">  رفيق القرآن : ابدأ رحلتك الآن ✨</div>', unsafe_allow_html=True)
-    st.markdown('<div class="quote">“خيركم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
+    st.markdown('<div class="quote">“خيركم من تعلم القرآن وعلمه – النبي محمد ﷺ</div>', unsafe_allow_html=True)
     st.markdown("""
     <div class="centered-image">
         <img src="https://png.pngtree.com/png-clipart/20220223/original/pngtree-moslem-kid-read-quran-png-image_7311235.png" alt="Quran Kid">
