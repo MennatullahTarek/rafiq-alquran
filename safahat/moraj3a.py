@@ -138,7 +138,7 @@ def app():
 
         st.download_button(
             label="💾 تحميل النتيجة كملف CSV",
-            data=csv_buffer.getvalue(),
+            data=csv_buffer.getvalue().encode('utf-8-sig'),
             file_name="نتائج_مراجعة_القرآن.csv",
             mime="text/csv"
         )
