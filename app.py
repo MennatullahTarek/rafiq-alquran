@@ -34,7 +34,8 @@ pages = {
     "🔁 مُساعد الحفظ":    "safahat.hifz_helper_04",
     "📖 تفسير":         "safahat.tafsir_05",
     "🧠 لعبة المراجعة":  "safahat.moraj3a",
-    "❓ سؤال قرآنى":     "safahat.ask_quran"
+    "❓ سؤال قرآنى":     "safahat.ask_quran",
+    "من نحن 👀": "safahat.about_app"
 }
 
 
