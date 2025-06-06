@@ -12,7 +12,7 @@ from io import StringIO
 class TextProcessor:
     @staticmethod
     def strip_tashkeel(text):
-        return re.sub(r'[\u064B-\u0652]', '', text)
+        return re.sub(r'[]', '', text)
 
     @staticmethod
     def compare_ayah(user_input, actual_text):
@@ -25,7 +25,7 @@ class TextProcessor:
     def extract_score_from_text(text):
         match = re.search(r'(\d+(?:\.\d+)?)\s*/\s*10', text)
         if match:
-            return round(float(match.group(1)) * 10, 2)  # كنسبة مئوية
+            return round(float(match.group(1)) * 10, 2)  
         return None
 
 # --- Agent: Ayah Fetcher ---
@@ -65,7 +65,7 @@ def get_surahs():
 
 # --- التطبيق الرئيسي ---
 def app():
-    st.title("\ud83d\udcd6 رفيق القرآن - مراجعة وحفظ وتفسير")
+    st.title(" رفيق القرآن - مراجعة وحفظ وتفسير")
 
     # إنشاء الوكلاء
     ayah_fetcher = AyahFetcher()
@@ -104,8 +104,8 @@ def app():
             words = actual_ayah.split()
             prompt_prefix = " ".join(words[:2]) if len(words) > 2 else actual_ayah
 
-            st.markdown(f"### \ud83e\udde0 اختبار الحفظ\nأكمل بعد: **{prompt_prefix}...**")
-            user_input = st.text_area("\ud83d\udcdd أكمل الآية:", key=f"mem_{ayah_num}")
+            st.markdown(f"### اختبار الحفظ\nأكمل بعد: **{prompt_prefix}...**")
+            user_input = st.text_area("\ أكمل الآية:", key=f"mem_{ayah_num}")
 
             if user_input.strip():
                 full_input = prompt_prefix + " " + user_input.strip()
@@ -114,8 +114,8 @@ def app():
             else:
                 score = "-"
 
-            st.markdown("### \ud83d\udcd8 التفسير")
-            user_tafsir = st.text_area("\ud83d\udcdd اشرح معنى الآية أو الكلمات:", key=f"tafsir_{ayah_num}")
+            st.markdown("###  التفسير")
+            user_tafsir = st.text_area(" اشرح معنى الآية أو الكلمات:", key=f"tafsir_{ayah_num}")
             st.info("📌 لا يتم تقييم التفسير تلقائيًا حاليًا.")
 
             responses.append([
@@ -140,7 +140,7 @@ def app():
             mime="text/csv"
         )
 
-        if st.button("\ud83d\udd04 ابدأ من جديد"):
+        if st.button(" ابدأ من جديد"):
             st.session_state.started = False
             st.rerun()
 
