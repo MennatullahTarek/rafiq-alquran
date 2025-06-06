@@ -1,41 +1,47 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForQuestionAnswering
-import torch
+from transformers import pipeline
+import nest_asyncio
 
-# تحميل النموذج مرة واحدة (كفاءة أعلى)
+# علشان نحل مشكلة event loop مع Streamlit
+nest_asyncio.apply()
+
+# تحميل النموذج من Hugging Face باستخدام التوكن
 @st.cache_resource
-def load_quran_qa_model():
-    tokenizer = AutoTokenizer.from_pretrained("mohammed-elkomy/quran-qa")
-    model = AutoModelForQuestionAnswering.from_pretrained("mohammed-elkomy/quran-qa")
-    return tokenizer, model
+def load_qa_pipeline():
+    return pipeline(
+        "question-answering",
+        model="mohammed-elkomy/quran-qa",
+        tokenizer="mohammed-elkomy/quran-qa",
+        use_auth_token=st.secrets["huggingface_token"]
+    )
 
-tokenizer, model = load_quran_qa_model()
-
-# صفحة اسأل عن القرآن
 def app():
-    st.title("📖 اسأل عن القرآن")
+    st.set_page_config(page_title="اسأل عن القرآن", page_icon="📖", layout="centered")
 
-    st.markdown("🕌 **اكتب أي سؤال متعلق بالقرآن الكريم** مثل:\n- كم عدد آيات سورة البقرة؟\n- هل سورة التكاثر مكية أم مدنية؟\n- لما نزلت سورة الطلاق؟")
+    qa_pipeline = load_qa_pipeline()
 
-    question = st.text_input("✍️ سؤالك هنا:")
-    
-    # يمكنك تحميل نص القرآن أو جزء منه لاستخدامه كسياق
-    # هنا سنضع مثال مبسط فقط، ممكن تحسينه لاحقًا
-    default_context = """
-        الم (1) ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ (2) الَّذِينَ يُؤْمِنُونَ بِالْغَيْبِ وَيُقِيمُونَ الصَّلَاةَ...
-    """
+    st.title("💬 اسأل عن القرآن")
+    st.markdown("أكتب أي سؤال له علاقة بالقرآن الكريم وسنحاول مساعدتك في الإجابة عليه ✨")
 
-    context = st.text_area("📜 السياق (يمكن تركه فارغ لاستخدام جزء من القرآن):", value=default_context, height=150)
+    # مدخل السؤال من المستخدم
+    question = st.text_input("❓ سؤالك:", placeholder="مثال: كم عدد آيات سورة البقرة؟")
 
-    if st.button("🔍 احصل على الإجابة"):
-        if not question.strip():
-            st.warning("من فضلك أدخل سؤال.")
-        else:
-            inputs = tokenizer.encode_plus(question, context, return_tensors="pt", truncation=True)
-            with torch.no_grad():
-                outputs = model(**inputs)
-                answer_start = torch.argmax(outputs.start_logits)
-                answer_end = torch.argmax(outputs.end_logits) + 1
-                answer_ids = inputs["input_ids"][0][answer_start:answer_end]
-                answer = tokenizer.decode(answer_ids, skip_special_tokens=True)
-            st.success(f"💡 **الإجابة:** {answer}")
+    # سياق مبدئي بسيط
+    default_context = (
+        "القرآن الكريم هو كتاب الله المنزل على النبي محمد صلى الله عليه وسلم، ويتكون من 114 سورة. "
+        "منها سور مكية ومدنية، وتحتوي السور على آيات تتحدث عن العقيدة، والعبادات، والمعاملات، "
+        "وقصص الأنبياء، والحكم، والمواعظ."
+    )
+
+    # لما المستخدم يكتب سؤال
+    if question:
+        with st.spinner("⏳ جاري البحث عن الإجابة..."):
+            try:
+                result = qa_pipeline(question=question, context=default_context)
+                st.success(f"✅ الإجابة: {result['answer']}")
+            except Exception as e:
+                st.error(f"حدث خطأ أثناء محاولة الإجابة على سؤالك: {e}")
+
+# لو شغالة الملف دا لوحده
+if __name__ == "__main__":
+    app()
