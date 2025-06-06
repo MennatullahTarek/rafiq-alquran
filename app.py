@@ -10,7 +10,8 @@ page = st.sidebar.radio("اختر الصفحة:", [
     "مُخطط الحفظ",
    "مُساعد الحفظ (تكرار)",
     "تفسير",
-    "لعبة المراجعة"
+    "لعبة المراجعة",
+    "سؤال قرآنى"
 ])
 
 if page == "لوحة التحكم":
@@ -36,3 +37,9 @@ elif page ==  "تفسير":
 elif page =="لعبة المراجعة":
     import safahat.moraj3a as memory
     memory.app()
+
+elif page =="سؤال قرآنى":
+    import safahat.ask_quran as ask
+    ask.app()
+
+
