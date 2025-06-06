@@ -148,11 +148,11 @@ def display_ui(agent):
 # 🚀 تشغيل التطبيق
 # ----------------------------
 
-def main():
+def app():
     env = HifzEnvironment()
     tools = QuranAPI()
     agent = HifzAgent(env, tools)
     display_ui(agent)
 
 if __name__ == "__main__":
-    main()
+    app()
