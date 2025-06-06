@@ -1,35 +1,33 @@
 import streamlit as st
-from transformers import pipeline
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 import nest_asyncio
 
 # لحل مشكلة event loop مع Streamlit
 nest_asyncio.apply()
 
-# تحميل النموذج من Hugging Face
+# تحميل النموذج
 @st.cache_resource
 def load_model():
-    return pipeline(
-        "text-generation",
-        model="riotu-lab/ArabianGPT-1.5B",
-        tokenizer="riotu-lab/ArabianGPT-1.5B"
-    )
+    tokenizer = AutoTokenizer.from_pretrained("Elgeish/t5-small-arabic-qa")
+    model = AutoModelForSeq2SeqLM.from_pretrained("Elgeish/t5-small-arabic-qa")
+    return pipeline("text2text-generation", model=model, tokenizer=tokenizer)
 
 def app():
-    generator = load_model()
+    qa_pipeline = load_model()
 
     st.title("💬 اسأل عن القرآن")
     st.markdown("أكتب أي سؤال له علاقة بالقرآن الكريم وسنحاول مساعدتك في الإجابة عليه ✨")
 
-    # مدخل السؤال من المستخدم
     question = st.text_input("❓ سؤالك:", placeholder="مثال: كم عدد آيات سورة البقرة؟")
+    context = st.text_area("📚 أضف سياقًا (اختياري):", placeholder="مثال: سورة البقرة تحتوي على ...")
 
     if question:
         with st.spinner("⏳ جاري توليد الإجابة..."):
             try:
-                prompt = f"سؤال: {question}\nإجابة:"
-                result = generator(prompt, max_new_tokens=100, do_sample=True, top_k=50, top_p=0.95)
-                answer = result[0]['generated_text'].split("إجابة:")[1].strip()
-                st.success(f"✅ الإجابة: {answer}")
+                # صيغة T5 للسؤال: سؤال: <السؤال>  سياق: <السياق>
+                input_text = f"سؤال: {question}  سياق: {context}"
+                result = qa_pipeline(input_text, max_new_tokens=50)[0]["generated_text"]
+                st.success(f"✅ الإجابة: {result}")
             except Exception as e:
                 st.error(f"حدث خطأ أثناء محاولة الإجابة على سؤالك: {e}")
 
