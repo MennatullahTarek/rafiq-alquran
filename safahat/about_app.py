@@ -26,10 +26,7 @@ def app():
         .container {{
             max-width: 600px;
             margin: 80px auto 60px auto;
-            background-color: white;
             padding: 40px 40px 50px 40px;
-            border-radius: 15px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: {theme['text']};
             line-height: 1.65;
@@ -44,14 +41,6 @@ def app():
             font-weight: 900;
             margin-bottom: 5px;
             letter-spacing: 1.1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-        }}
-        .title img {{
-            width: 48px;
-            height: 48px;
         }}
         .subtitle {{
             color: {theme['secondary']};
@@ -94,24 +83,6 @@ def app():
             font-weight: 900;
             font-size: 1.3rem;
             color: {theme['primary']};
-        }}
-        .image-section {{
-            margin: 30px 0 45px 0;
-            max-width: 400px;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }}
-        .image-section img {{
-            width: 100%;
-            height: auto;
-            display: block;
-            filter: drop-shadow(0 0 8px {theme['primary']});
-            transition: transform 0.4s ease;
-            border-radius: 15px;
-        }}
-        .image-section img:hover {{
-            transform: scale(1.05);
         }}
         .why-choose {{
             max-width: 100%;
@@ -177,12 +148,9 @@ def app():
 
     st.markdown('<div class="fade-in container">', unsafe_allow_html=True)
 
-    # Title with Quran icon
+    # Title without image and white background
     st.markdown("""
-    <h1 class="title">
-        <img src="https://cdn-icons-png.flaticon.com/512/3448/3448143.png" alt="Quran Icon"/>
-        رفيق القرآن
-    </h1>
+    <h1 class="title">رفيق القرآن</h1>
     """, unsafe_allow_html=True)
 
     st.markdown('<p class="subtitle">رحلتك السهلة والممتعة لحفظ وتدبر كتاب الله</p>', unsafe_allow_html=True)
@@ -198,12 +166,7 @@ def app():
     </ul>
     """, unsafe_allow_html=True)
 
-    # Image section with new Quran-related image
-    st.markdown("""
-    <div class="image-section">
-        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80" alt="Quran Reading" />
-    </div>
-    """, unsafe_allow_html=True)
+    # Removed image section
 
     # Why choose section
     st.markdown("""
