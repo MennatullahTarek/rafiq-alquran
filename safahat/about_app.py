@@ -15,6 +15,8 @@ def app():
         html, body, .main {{
             height: 100%;
             background-color: {theme['background']};
+            margin: 0;
+            padding: 0;
         }}
         .fade-in {{
             animation: fadeIn 0.9s ease-in-out;
@@ -25,7 +27,7 @@ def app():
         }}
         .container {{
             max-width: 600px;
-            margin: 80px auto 60px auto;
+            margin: 0 auto 60px auto;
             padding: 40px 40px 50px 40px;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: {theme['text']};
@@ -34,12 +36,14 @@ def app():
             flex-direction: column;
             align-items: center;
             text-align: center;
+            min-height: 100vh;
+            justify-content: center;
         }}
         .title {{
             color: {theme['primary']};
-            font-size: 3rem;
+            font-size: 4rem;
             font-weight: 900;
-            margin-bottom: 5px;
+            margin-bottom: 60px;
             letter-spacing: 1.1px;
         }}
         .subtitle {{
@@ -86,7 +90,7 @@ def app():
         }}
         .why-choose {{
             max-width: 100%;
-            margin-bottom: 40px;
+            margin-top: 80px;
             text-align: center;
             direction: rtl;
         }}
@@ -122,11 +126,12 @@ def app():
         }}
         @media (max-width: 768px) {{
             .container {{
-                margin: 60px 20px 40px 20px;
+                margin: 0 20px 40px 20px;
                 padding: 30px 20px 30px 20px;
             }}
             .title {{
-                font-size: 2.2rem;
+                font-size: 3rem;
+                margin-bottom: 50px;
             }}
             .subtitle {{
                 font-size: 1rem;
@@ -148,7 +153,7 @@ def app():
 
     st.markdown('<div class="fade-in container">', unsafe_allow_html=True)
 
-    # Title without image and white background
+    # Title centered vertically and horizontally
     st.markdown("""
     <h1 class="title">رفيق القرآن</h1>
     """, unsafe_allow_html=True)
@@ -166,9 +171,7 @@ def app():
     </ul>
     """, unsafe_allow_html=True)
 
-    # Removed image section
-
-    # Why choose section
+    # Why choose section with more margin top for spacing
     st.markdown("""
     <div class="why-choose">
         <h3>لماذا تختار رفيق القرآن؟</h3>
