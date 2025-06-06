@@ -12,15 +12,16 @@ def app():
         "accent": "#FFC107",
         "background": "#F9F9F9",
         "text": "#333333",
-        "highlight": "#AED581"
+        "highlight": "#E6F4EA"
     }
 
-    # Custom CSS for theme and layout
+    # Apply custom CSS
     st.markdown(f"""
         <style>
             html, body, .main {{
                 background-color: {theme['background']};
                 direction: rtl;
+                font-family: 'Cairo', sans-serif;
             }}
             .title-section {{
                 text-align: center;
@@ -46,21 +47,43 @@ def app():
     """, unsafe_allow_html=True)
 
     # Title & subtitle
-    st.markdown('<div class="title-section">مُخطط الحفظ الذكي</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">اصنع خطتك بنفسك بناءً على طاقتك وعدد الأيام، وسنقسمها لك بطريقة محفزة ومنظمة 🚀</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title-section">📖 مُخطط الحفظ الذكي</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">اصنع خطتك حسب طاقتك وعدد الأيام، وسنقسمها لك بطريقة محفزة ومنظمة 🚀</div>', unsafe_allow_html=True)
 
-    # Input section using expander and columns
-    with st.expander("🔧 إعدادات الخطة", expanded=True):
-        surah_name = st.text_input("اسم السورة", "البقرة")
+    # Input section inside expander
+    with st.expander("🛠️ اضبط خطة الحفظ"):
         col1, col2 = st.columns(2)
         with col1:
-            from_ayah = st.number_input("من الآية", min_value=1, value=1)
+            surah_name = st.text_input("📘 اسم السورة", "البقرة")
+            from_ayah = st.number_input("✳️ من الآية", min_value=1, value=1)
         with col2:
-            to_ayah = st.number_input("إلى الآية", min_value=from_ayah, value=7)
-        total_days = st.number_input("عدد أيام الحفظ", min_value=1, value=7)
-        days_per_week = st.slider("عدد الأيام التي تحفظ بها في الأسبوع", 1, 7, 5)
+            to_ayah = st.number_input("🔚 إلى الآية", min_value=from_ayah, value=7)
+            total_days = st.number_input("📅 عدد أيام الحفظ", min_value=1, value=7)
 
-    # Plan creation logic
+        days_per_week = st.slider("🗓️ كم يوم تحفظ في الأسبوع؟", 1, 7, 5)
+
+    # Summary box
+    st.markdown(f"""
+        <div style='
+            background-color: {theme['highlight']};
+            border: 1px solid #cceabb;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            color: {theme['text']};
+            font-size: 1.1rem;
+            line-height: 2.2;
+        '>
+            <strong>📌 ملخص اختياراتك:</strong><br>
+            🔹 <strong>السورة:</strong> {surah_name}<br>
+            🔹 <strong>من الآية:</strong> {from_ayah} &nbsp;&nbsp;&nbsp;&nbsp; <strong>إلى الآية:</strong> {to_ayah}<br>
+            🔹 <strong>المدة:</strong> {total_days} يومًا<br>
+            🔹 <strong>أيام الحفظ أسبوعيًا:</strong> {days_per_week}
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Plan creation function
     def create_plan(from_ayah, to_ayah, total_days):
         total_ayahs = to_ayah - from_ayah + 1
         ayahs_per_day = math.ceil(total_ayahs / total_days)
@@ -78,9 +101,9 @@ def app():
             elif day % 3 == 0:
                 note = "راجع ما سبق"
             elif day == 1:
-                note = "ابدأ بنية صادقة واستعن بالله"
+                note = "ابدأ بنية صادقة"
             else:
-                note = "واصل الحفظ بهمة"
+                note = "واصل الحفظ"
 
             plan.append({
                 "اليوم": f"اليوم {day}",
@@ -94,7 +117,7 @@ def app():
 
         return pd.DataFrame(plan)
 
-    # Optional: Convert DataFrame to image
+    # Image export
     def plot_table(df):
         fig, ax = plt.subplots(figsize=(7, len(df) * 0.6 + 1))
         ax.axis('tight')
@@ -108,39 +131,32 @@ def app():
         buf.seek(0)
         return buf
 
-    # Display summary before generating plan
-    st.markdown("### 👁️ ملخص اختياراتك:")
-    st.markdown(f"""
-    - السورة: **{surah_name}**
-    - الآيات: **من {from_ayah} إلى {to_ayah}**
-    - المدة: **{total_days} يومًا**
-    - عدد أيام الحفظ بالأسبوع: **{days_per_week}**
-    """)
-
     if st.button("✨ أنشئ الخطة الآن"):
         plan_df = create_plan(from_ayah, to_ayah, total_days)
+
         st.markdown('<div class="result-title">📋 خطة الحفظ التفصيلية:</div>', unsafe_allow_html=True)
         st.table(plan_df)
 
-        # CSV download
-        csv = plan_df.to_csv(index=False).encode('utf-8-sig')
-        img = plot_table(plan_df)
-
+        # Download buttons side by side
         col1, col2 = st.columns(2)
         with col1:
+            csv = plan_df.to_csv(index=False).encode('utf-8-sig')
             st.download_button(
-                label="📥 تحميل كـ CSV",
+                label="⬇️ تحميل كـ CSV",
                 data=csv,
                 file_name="خطة_الحفظ.csv",
                 mime="text/csv",
             )
+
         with col2:
+            img = plot_table(plan_df)
             st.download_button(
                 label="🖼️ تحميل كصورة",
                 data=img,
                 file_name="خطة_الحفظ.png",
                 mime="image/png"
             )
+
 
 if __name__ == "__main__":
     app()
