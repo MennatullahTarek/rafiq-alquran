@@ -29,13 +29,13 @@ def get_context_from_surah(surah_name, surah_data):
             )
     return ""
 
-# تحميل موديل LLM
+# تحميل موديل LLM (QA model)
 @st.cache_resource
 def load_llm_model():
     return pipeline(
         "question-answering",
-        model="asafaya/bert-base-arabic",
-        tokenizer="asafaya/bert-base-arabic"
+        model="akhooli/bert-base-arabic-qa",
+        tokenizer="akhooli/bert-base-arabic-qa"
     )
 
 # توليد الرد من الموديل والسياق
@@ -86,8 +86,7 @@ def app():
     if user_input:
         response = generate_response(user_input, surah_data, qa_pipeline)
         st.session_state.chat_history.append((user_input, response))
-        st.session_state.user_input = ""
-        st.rerun()
+        st.experimental_rerun()
 
 if __name__ == "__main__":
     app()
