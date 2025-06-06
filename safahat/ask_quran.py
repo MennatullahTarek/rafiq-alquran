@@ -16,7 +16,7 @@ def load_qa_pipeline():
     )
 
 def app():
-    st.set_page_config(page_title="اسأل عن القرآن", page_icon="📖", layout="centered")
+    
 
     qa_pipeline = load_qa_pipeline()
 
