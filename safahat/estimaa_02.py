@@ -137,23 +137,70 @@ def get_audio_url(reader_slug, server_num, surah_num):
 
 
 def app():
-    st.title(" القارئ ")
-    st.markdown("""
-            اختر القارئ المفضل لديك واستمع لسورة من اختيارك بجودة عالية  
-            لتعيش لحظات خشوع وتأمل 💖🎧.  
-            """)
+    theme = {
+        "primary": "#2E7D32",
+        "secondary": "#00796B",
+        "accent": "#FFC107",
+        "background": "#F9F9F9",
+        "text": "#333333",
+        "highlight": "#AED581"
+    }
 
+    st.markdown(f"""
+        <style>
+            html, body, .main {{
+                background-color: {theme['background']};
+            }}
+            .title-section {{
+                text-align: center;
+                color: {theme['primary']};
+                font-size: 2.5rem;
+                font-weight: 800;
+                margin-bottom: 20px;
+                direction: rtl;
+            }}
+            .subtitle {{
+                text-align: center;
+                color: {theme['secondary']};
+                font-size: 1.2rem;
+                margin-bottom: 40px;
+                direction: rtl;
+            }}
+            .selects {{
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                max-width: 500px;
+                margin: auto;
+                direction: rtl;
+            }}
+            .audio-title {{
+                text-align: center;
+                font-size: 1.2rem;
+                color: {theme['text']};
+                margin-top: 30px;
+                font-weight: 700;
+            }}
+        </style>
+    """, unsafe_allow_html=True)
 
+    st.markdown('<div class="title-section">الاستماع للقرآن الكريم</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">اختر القارئ والسورة واستمتع بالاستماع بتدبر وخشوع 💖🎧</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="selects">', unsafe_allow_html=True)
     reader_choice = st.selectbox("🎙️ اختر القارئ:", list(readers.keys()))
     surah_choice = st.selectbox("📖 اختر السورة:", list(surahs.keys()))
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if reader_choice and surah_choice:
         reader_slug, server_num = readers[reader_choice]
         surah_num = surahs[surah_choice]
         url = get_audio_url(reader_slug, server_num, surah_num)
-        st.markdown(f"###  القارئ: {reader_choice} - سورة {surah_choice}")
+
+        st.markdown(f'<div class="audio-title">🎧 القارئ: {reader_choice} | سورة {surah_choice}</div>', unsafe_allow_html=True)
         st.audio(url, format="audio/mp3")
 
-# تشغيل التطبيق
+
+
 if __name__ == "__main__":
     app()
