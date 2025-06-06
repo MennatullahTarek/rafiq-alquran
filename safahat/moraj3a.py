@@ -12,7 +12,8 @@ from io import StringIO
 class TextProcessor:
     @staticmethod
     def strip_tashkeel(text):
-        return re.sub(r'[]', '', text)
+        # remove Arabic diacritics
+        return re.sub(r'[\u064B-\u0652]', '', text)
 
     @staticmethod
     def compare_ayah(user_input, actual_text):
@@ -20,13 +21,6 @@ class TextProcessor:
         user_clean = TextProcessor.strip_tashkeel(user_input.replace('\n', '').strip())
         similarity_ratio = difflib.SequenceMatcher(None, actual_clean, user_clean).ratio()
         return round(similarity_ratio * 100, 2)
-
-    @staticmethod
-    def extract_score_from_text(text):
-        match = re.search(r'(\d+(?:\.\d+)?)\s*/\s*10', text)
-        if match:
-            return round(float(match.group(1)) * 10, 2)  
-        return None
 
 # --- Agent: Ayah Fetcher ---
 class AyahFetcher:
@@ -65,9 +59,8 @@ def get_surahs():
 
 # --- التطبيق الرئيسي ---
 def app():
-    st.title(" رفيق القرآن - مراجعة وحفظ وتفسير")
+    st.title("رفيق القرآن - مراجعة وحفظ وتفسير")
 
-    # إنشاء الوكلاء
     ayah_fetcher = AyahFetcher()
     tafsir_fetcher = TafsirFetcher()
     text_processor = TextProcessor()
@@ -105,7 +98,7 @@ def app():
             prompt_prefix = " ".join(words[:2]) if len(words) > 2 else actual_ayah
 
             st.markdown(f"### اختبار الحفظ\nأكمل بعد: **{prompt_prefix}...**")
-            user_input = st.text_area("\ أكمل الآية:", key=f"mem_{ayah_num}")
+            user_input = st.text_area("أكمل الآية:", key=f"mem_{ayah_num}")
 
             if user_input.strip():
                 full_input = prompt_prefix + " " + user_input.strip()
@@ -114,8 +107,8 @@ def app():
             else:
                 score = "-"
 
-            st.markdown("###  التفسير")
-            user_tafsir = st.text_area(" اشرح معنى الآية أو الكلمات:", key=f"tafsir_{ayah_num}")
+            st.markdown("### التفسير")
+            user_tafsir = st.text_area("اشرح معنى الآية أو الكلمات:", key=f"tafsir_{ayah_num}")
             st.info("📌 لا يتم تقييم التفسير تلقائيًا حاليًا.")
 
             responses.append([
@@ -127,20 +120,19 @@ def app():
                 "-"
             ])
 
-        # --- تصدير النتائج ---
         csv_buffer = StringIO()
         writer = csv.writer(csv_buffer)
         writer.writerow(["السورة", "رقم الآية", "محاولة الحفظ", "تقييم الحفظ", "محاولة التفسير", "تقييم التفسير"])
         writer.writerows(responses)
 
         st.download_button(
-            label="\ud83d\udcbe تحميل النتيجة كملف CSV",
+            label="💾 تحميل النتيجة كملف CSV",
             data=csv_buffer.getvalue(),
             file_name="نتائج_مراجعة_القرآن.csv",
             mime="text/csv"
         )
 
-        if st.button(" ابدأ من جديد"):
+        if st.button("ابدأ من جديد"):
             st.session_state.started = False
             st.rerun()
 
