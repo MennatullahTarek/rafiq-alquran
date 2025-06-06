@@ -157,9 +157,12 @@ pages = {
     "❓ سؤال قرآنى":     "safahat.ask_quran"
 }
 
-# Initialize current page in session_state
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "🏠 الرئيسية"
+# قراءة صفحة محددة من رابط المتصفح
+query_params = st.query_params
+current_page = query_params.get("page", "🏠 الرئيسية")
+
+if current_page not in pages:
+    current_page = "🏠 الرئيسية"
 
 def load_page(page_key):
     mod_name = pages.get(page_key)
@@ -167,12 +170,19 @@ def load_page(page_key):
         mod = __import__(mod_name, fromlist=['app'])
         mod.app()
 
-# CSS for theme + fade-in animation
+# CSS (التنسيق و Animation)
 st.markdown(f"""
 <style>
     .stApp {{
         background-color: {theme['background']};
         font-family: 'Segoe UI', sans-serif;
+    }}
+    .fade-in {{
+        animation: fadeIn 0.8s ease-in-out;
+    }}
+    @keyframes fadeIn {{
+        from {{ opacity: 0; transform: translateY(20px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
     }}
     .main-title {{
         color: {theme['primary']};
@@ -184,9 +194,9 @@ st.markdown(f"""
     .quote {{
         font-size: 18px;
         color: {theme['secondary']};
-        text-align:center;
+        text-align: center;
         font-style: italic;
-        margin-bottom:30px;
+        margin-bottom: 30px;
     }}
     .centered-image img {{
         width: 500px;
@@ -200,89 +210,52 @@ st.markdown(f"""
         transform: scale(1.05);
     }}
     .bottom-nav {{
-        position: fixed; bottom:0; left:0; width:100%;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
         background-color: {theme['primary']};
-        display:flex; justify-content:center;
-        padding:12px 0; border-top:3px solid {theme['accent']};
+        display: flex;
+        justify-content: center;
+        padding: 12px 0;
+        border-top: 3px solid {theme['accent']};
         z-index: 999;
     }}
-    .bottom-nav button {{
-        background:none;
-        border:none;
-        color:white;
-        margin:0 15px;
-        font-weight:bold;
-        font-size:14px;
-        padding:6px 12px;
-        border-radius:8px;
-        cursor:pointer;
+    .bottom-nav a {{
+        color: white;
+        margin: 0 15px;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 14px;
+        padding: 6px 12px;
+        border-radius: 8px;
         transition: background-color 0.3s;
+        cursor: pointer;
     }}
-    .bottom-nav button:hover {{
-        background-color:{theme['accent']};
-        color:black;
+    .bottom-nav a:hover {{
+        background-color: {theme['accent']};
+        color: black;
     }}
-    .bottom-nav button.active {{
-        background-color:{theme['accent']};
-        color:black;
-    }}
-
-    /* Fade-in animation for content */
-    .fade-in {{
-        animation: fadeIn 0.6s ease-in;
-    }}
-
-    @keyframes fadeIn {{
-        from {{opacity: 0;}}
-        to {{opacity: 1;}}
-    }}
-
-    /* Top fixed bar */
-    .top-bar {{
-        background-color:#2E7D32; 
-        padding: 15px; 
-        color:white; 
-        text-align:center; 
-        font-weight:bold; 
-        font-size:26px; 
-        position: fixed; 
-        top:0; 
-        width:100%; 
-        z-index: 1000;
-    }}
-
-    /* Add padding to body to avoid top-bar overlap */
-    .body-padding {{
-        padding-top: 75px;
-        padding-bottom: 60px;
+    .bottom-nav a.active {{
+        background-color: {theme['accent']};
+        color: black;
     }}
 </style>
 """, unsafe_allow_html=True)
 
-# Top fixed bar
+# الشريط العلوي
 st.markdown("""
-<div class="top-bar">
+<div style="background-color:#2E7D32; padding: 15px; color:white; text-align:center; font-weight:bold; font-size:26px; position: fixed; top:0; width:100%; z-index: 1000;">
     📖 رفيق القرآن
 </div>
 """, unsafe_allow_html=True)
 
-# Navigation buttons in footer
-st.markdown('<div class="bottom-nav">', unsafe_allow_html=True)
-for page_name in pages.keys():
-    active_class = "active" if page_name == st.session_state.current_page else ""
-    # Use buttons instead of links for in-page navigation without reloads
-    if st.button(page_name, key=page_name):
-        if st.session_state.current_page != page_name:
-            st.session_state.current_page = page_name
-            st.experimental_rerun()
-st.markdown('</div>', unsafe_allow_html=True)
+# المحتوى
+st.markdown('<div class="fade-in">', unsafe_allow_html=True)
 
-# Content area with padding and fade-in effect
-st.markdown('<div class="body-padding fade-in">', unsafe_allow_html=True)
-
-if st.session_state.current_page == "🏠 الرئيسية":
-    st.markdown('<div class="main-title">رفيق القرآن : ابدأ رحلتك الآن ✨</div>', unsafe_allow_html=True)
-    st.markdown('<div class="quote">“خيرهم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
+if current_page == "🏠 الرئيسية":
+    st.markdown('<div class="main-title" style="margin-top:70px;">  رفيق القرآن : ابدأ رحلتك الآن ✨</div>', unsafe_allow_html=True)
+    st.markdown('<div class="quote">“خيركم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
     st.markdown("""
     <div class="centered-image">
         <img src="https://png.pngtree.com/png-clipart/20220223/original/pngtree-moslem-kid-read-quran-png-image_7311235.png" alt="Quran Kid">
@@ -290,6 +263,14 @@ if st.session_state.current_page == "🏠 الرئيسية":
     """, unsafe_allow_html=True)
     st.markdown(f'<div class="quote">🌟 مقتطف اليوم: {random.choice(daily_ayahs)}</div>', unsafe_allow_html=True)
 else:
-    load_page(st.session_state.current_page)
+    load_page(current_page)
 
 st.markdown('</div>', unsafe_allow_html=True)
+
+# شريط التنقل السفلي
+footer_html = ""
+for page_name in pages.keys():
+    active = "active" if page_name == current_page else ""
+    footer_html += f'<a href="/?page={page_name}" class="{active}">{page_name}</a>'
+
+st.markdown(f'<div class="bottom-nav">{footer_html}</div>', unsafe_allow_html=True)
