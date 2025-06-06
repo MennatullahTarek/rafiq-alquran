@@ -79,7 +79,7 @@ def app():
     if user_input:
         response = generate_response(user_input, surah_data, qa_pipeline)
         st.session_state.chat_history.append((user_input, response))
-        st.experimental_rerun()
+        st.rerun()
 
 if __name__ == "__main__":
     app()
