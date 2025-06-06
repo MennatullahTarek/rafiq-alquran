@@ -1,21 +1,21 @@
 import streamlit as st
 
+# إعداد صفحة ستريمليت
 st.set_page_config(page_title="رفيق القرآن", layout="wide")
 
-primary_color = "#2E7D32"    # أخضر زيتوني غامق
-secondary_color = "#009688"  # تركوازي
-accent_color = "#FFC107"     # ذهبي
-background_color = "#FAF3E0" # بيج فاتح
+# ألوان إسلامية وروحانية
+primary_color = "#2E7D32"    # أخضر زيتوني غامق (السلام والبركة)
+secondary_color = "#009688"  # تركوازي هادي (الصفاء)
+accent_color = "#FFC107"     # ذهبي دافئ (الفخامة)
+background_color = "#FAF3E0" # بيج فاتح كريمي (النقاء)
 
+# تخصيص الستايل (CSS) بالألوان المختارة
 st.markdown(f"""
     <style>
         .sidebar .sidebar-content {{
             background-color: {background_color};
             padding: 20px 15px 30px 15px;
             border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }}
         .sidebar .stRadio > label {{
             color: {primary_color};
@@ -30,7 +30,6 @@ st.markdown(f"""
             margin-bottom: 15px;
             padding-left: 10px;
             font-style: italic;
-            align-self: flex-start;
         }}
         .stApp {{
             background-color: #ffffff;
@@ -55,26 +54,10 @@ st.markdown(f"""
         a:hover, .stButton>button:hover {{
             background-color: {primary_color};
         }}
-        /* صور في السايدبار */
-        .sidebar-img-top {{
-            width: 80%;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }}
-        .sidebar-img-top:hover {{
-            transform: scale(1.05);
-        }}
-        .sidebar-img-bottom {{
-            width: 60%;
-            margin-top: auto;
-            margin-bottom: 10px;
-            opacity: 0.7;
-        }}
     </style>
 """, unsafe_allow_html=True)
 
+# قائمة الصفحات مع وصف بسيط لكل صفحة لتحسين تجربة المستخدم
 pages = {
     "لوحة التحكم": "ملخص شامل وإحصائيات التطبيق",
     "الاستماع": "استمع إلى التلاوات الصوتية",
@@ -86,34 +69,15 @@ pages = {
 }
 
 st.sidebar.title("القائمة الرئيسية")
-
-# صورة إسلامية في أعلى الشريط الجانبي (رابط لصورة مجانية)
-st.sidebar.image(
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Arabic_calligraphy_of_the_word_Bismillah.svg/2560px-Arabic_calligraphy_of_the_word_Bismillah.svg.png",
-    use_column_width=True,
-    clamp=True,
-    caption="بسم الله الرحمن الرحيم",
-    output_format="PNG",
-    class_="sidebar-img-top"
-)
-
 page = st.sidebar.radio("اختر الصفحة:", list(pages.keys()))
 
+# عرض وصف صغير تحت كل اختيار في القائمة الجانبية
 for p, desc in pages.items():
     if p == page:
         st.sidebar.markdown(f'<div class="description">{desc}</div>', unsafe_allow_html=True)
         break
 
-# صورة إسلامية صغيرة في أسفل الشريط الجانبي
-st.sidebar.image(
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Green_Mosque_Dome_-_Masjid_al-Nabawi.jpg/320px-Green_Mosque_Dome_-_Masjid_al-Nabawi.jpg",
-    use_column_width=False,
-    width=150,
-    caption="المسجد النبوي الشريف",
-    output_format="JPEG",
-    class_="sidebar-img-bottom"
-)
-
+# عرض الصفحة المختارة
 if page == "لوحة التحكم":
     import safahat.dash_01 as dash
     dash.app()
