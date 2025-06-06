@@ -39,12 +39,18 @@ def app():
             min-height: 100vh;
             justify-content: center;
         }}
-        .title {{
+        .main-title {{
             color: {theme['primary']};
-            font-size: 4rem;
-            font-weight: 900;
-            margin-bottom: 60px;
-            letter-spacing: 1.1px;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }}
+        .decor-line {{
+            width: 80px;
+            height: 4px;
+            background-color: {theme['accent']};
+            border-radius: 4px;
+            margin: 10px auto 40px auto;
         }}
         .subtitle {{
             color: {theme['secondary']};
@@ -129,9 +135,8 @@ def app():
                 margin: 0 20px 40px 20px;
                 padding: 30px 20px 30px 20px;
             }}
-            .title {{
-                font-size: 3rem;
-                margin-bottom: 50px;
+            .main-title {{
+                font-size: 1.7rem;
             }}
             .subtitle {{
                 font-size: 1rem;
@@ -153,12 +158,9 @@ def app():
 
     st.markdown('<div class="fade-in container">', unsafe_allow_html=True)
 
-    # Title centered vertically and horizontally
-       st.markdown("""
-    <div class="title">
-        <h3>  رفيق القرآن</h3>
-    </div>
-    """, unsafe_allow_html=True)
+    # Title and decorative line
+    st.markdown('<h3 class="main-title">رفيق القرآن</h3>', unsafe_allow_html=True)
+    st.markdown('<div class="decor-line"></div>', unsafe_allow_html=True)
 
     st.markdown('<p class="subtitle">رحلتك السهلة والممتعة لحفظ وتدبر كتاب الله</p>', unsafe_allow_html=True)
 
@@ -173,7 +175,7 @@ def app():
     </ul>
     """, unsafe_allow_html=True)
 
-    # Why choose section with more margin top for spacing
+    # Why choose section
     st.markdown("""
     <div class="why-choose">
         <h3>لماذا تختار رفيق القرآن؟</h3>
