@@ -36,7 +36,7 @@ pages = {
     "❓ سؤال قرآنى":     "safahat.ask_quran"
 }
 
-# تنسيق CSS متقدم
+# CSS
 st.markdown(f"""
 <style>
     .stApp {{background-color: {theme['background']}; font-family: 'Segoe UI', sans-serif;}}
@@ -46,10 +46,33 @@ st.markdown(f"""
     .header-title {{font-size: 26px; font-weight:bold;}}
     .quick-links a {{color:white; margin-left:25px; text-decoration:none; font-weight:500;}}
     .quick-links a:hover {{color: {theme['accent']}; text-decoration: underline;}}
-    .centered-image img {{width:240px; border-radius:20px; box-shadow:0 8px 20px rgba(0,0,0,0.2); transition: transform 0.3s ease; margin-top:80px;}}
-    .centered-image img:hover {{transform: scale(1.05);}}
+    .centered-image {{
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+        margin-bottom: 30px;
+    }}
+    .centered-image img {{
+        width: 480px;
+        border-radius: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        transition: transform 0.3s ease;
+    }}
+    .centered-image img:hover {{
+        transform: scale(1.05);
+    }}
     .bottom-nav {{position: fixed; bottom:0; left:0; width:100%; background-color: {theme['primary']}; display:flex; justify-content:center; padding:12px 0; border-top:3px solid {theme['accent']}; z-index: 999;}}
-    .bottom-nav a {{color:white; margin:0 15px; text-decoration:none; font-weight:bold; font-size:14px; padding:6px 12px; border-radius:8px; transition: background-color 0.3s;}}
+    .bottom-nav a {{
+        color:white; 
+        margin:0 15px; 
+        text-decoration:none; 
+        font-weight:bold; 
+        font-size:14px; 
+        padding:6px 12px; 
+        border-radius:8px; 
+        transition: background-color 0.3s;
+        cursor: pointer;
+    }}
     .bottom-nav a:hover {{background-color:{theme['accent']}; color:black;}}
     hr {{border:none; border-top:2px solid {theme['secondary']}; margin:25px 0;}}
 </style>
@@ -66,26 +89,34 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# محتوى الصفحة
-st.markdown('<div class="main-title" id="الرئيسية">خيركم من تعلم القرآن وعلمه ✨</div>', unsafe_allow_html=True)
-st.markdown('<div class="quote">“خيرهم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
+# قراءة صفحة محددة من query params أو الافتراضي "🏠 الرئيسية"
+query_params = st.experimental_get_query_params()
+current_page = query_params.get("page", ["🏠 الرئيسية"])[0]
 
-st.markdown("""
-<div class="centered-image">
-    <img src="https://png.pngtree.com/png-clipart/20220223/original/pngtree-moslem-kid-read-quran-png-image_7311235.png" alt="Quran Kid">
-</div>
-""", unsafe_allow_html=True)
+# عرض محتوى الصفحة الرئيسية
+if current_page == "🏠 الرئيسية":
+    st.markdown('<div class="main-title" id="الرئيسية">  رفيق القرآن : ابدأ رحلتك الآن  ✨</div>', unsafe_allow_html=True)
+    st.markdown('<div class="quote">“خيرهم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="centered-image">
+        <img src="https://png.pngtree.com/png-clipart/20220223/original/pngtree-moslem-kid-read-quran-png-image_7311235.png" alt="Quran Kid">
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="quote" id="مقتطف">🌟 مقتطف اليوم: {random.choice(daily_ayahs)}</div>', unsafe_allow_html=True)
+    st.markdown("<hr />", unsafe_allow_html=True)
+else:
+    # استيراد وعرض صفحة أخرى حسب التحديد
+    page_mod = pages.get(current_page)
+    if page_mod:
+        mod = __import__(page_mod, fromlist=['app'])
+        mod.app()
+    else:
+        st.warning("هذه الصفحة غير متوفرة حالياً.")
 
-st.markdown(f'<div class="quote" id="مقتطف">🌟 مقتطف اليوم: {random.choice(daily_ayahs)}</div>', unsafe_allow_html=True)
-st.markdown("<hr />", unsafe_allow_html=True)
+# شريط تنقل سفلي متفاعل (يستخدم query params لتغيير الصفحة)
+links_html = ""
+for name in pages.keys():
+    active_style = "background-color:" + theme['accent'] + "; color:black;" if name == current_page else ""
+    links_html += f'<a href="?page={name}" style="{active_style}">{name}</a>'
 
-# تحديد الصفحة
-selected = st.selectbox("", list(pages.keys()), index=0)
-page_mod = pages[selected]
-if page_mod:
-    mod = __import__(page_mod, fromlist=['app'])
-    mod.app()
-
-# شريط تنقل سفلي متفاعل
-links = "".join([f'<a href="#" onclick="window.location.reload()">{name}</a>' for name in pages])
-st.markdown(f'<div class="bottom-nav">{links}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="bottom-nav">{links_html}</div>', unsafe_allow_html=True)
