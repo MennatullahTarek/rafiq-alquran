@@ -1,117 +1,124 @@
 import streamlit as st
+from PIL import Image
+import base64
 
-# إعداد صفحة ستريمليت
+# إعداد الصفحة
 st.set_page_config(page_title="رفيق القرآن", layout="wide")
 
-# ألوان إسلامية وروحانية
-primary_color = "#2E7D32"    # أخضر زيتوني غامق (السلام والبركة)
-secondary_color = "#009688"  # تركوازي هادي (الصفاء)
-accent_color = "#FFC107"     # ذهبي دافئ (الفخامة)
-background_color = "#FAF3E0" # بيج فاتح كريمي (النقاء)
+# ألوان روحانية
+primary_color = "#2E7D32"    # أخضر زيتوني غامق
+secondary_color = "#009688"  # تركوازي
+accent_color = "#FFC107"     # ذهبي دافئ
+background_color = "#F3EFE5" # بيج كريمي فاتح
 
-# تخصيص الستايل (CSS) بالألوان المختارة والصور الإسلامية
+# إدراج CSS لتخصيص الخلفية والثيم
+background_image_url = "https://png.pngtree.com/png-clipart/20220223/original/pngtree-moslem-kid-read-quran-png-image_7311235.png"
 st.markdown(f"""
     <style>
-        .sidebar .sidebar-content {{
-            background-color: {background_color};
-            padding: 20px 15px 30px 15px;
-            border-radius: 12px;
-        }}
-        .sidebar .stRadio > label {{
-            color: {primary_color};
-            font-weight: 700;
-            font-size: 18px;
-            margin-bottom: 0px;
-        }}
-        .sidebar .description {{
-            font-size: 13px;
-            color: {secondary_color};
-            margin-top: -8px;
-            margin-bottom: 15px;
-            padding-left: 10px;
-            font-style: italic;
-        }}
         .stApp {{
-            background-color: #ffffff;
-            color: {primary_color};
+            background-color: {background_color};
+            background-image: url('{background_image_url}');
+            background-size: 200px;
+            background-position: bottom left;
+            background-repeat: no-repeat;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }}
-        h1 {{
-            color: {accent_color};
-            font-weight: 800;
-            margin-bottom: 10px;
+        .main-title {{
+            color: {primary_color};
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
         }}
-        a, .stButton>button {{
-            background-color: {secondary_color};
-            color: white !important;
-            border-radius: 8px;
-            padding: 8px 18px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        .quote {{
+            font-size: 18px;
+            color: {secondary_color};
+            text-align: center;
+            margin-bottom: 25px;
+            font-style: italic;
         }}
-        a:hover, .stButton>button:hover {{
+        .header-bar {{
             background-color: {primary_color};
+            padding: 10px 20px;
+            border-bottom: 3px solid {accent_color};
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }}
+        .header-title {{
+            font-size: 24px;
+            font-weight: bold;
+        }}
+        .quick-links a {{
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-weight: 500;
+        }}
+        .quick-links a:hover {{
+            text-decoration: underline;
+            color: {accent_color};
         }}
     </style>
 """, unsafe_allow_html=True)
 
-# شعار وجملة تحفيزية في الأعلى
+# شريط علوي ثابت
 st.markdown("""
-    <div style='text-align: center; margin-top: -30px;'>
-        <img src='https://i.ibb.co/4JK93Fj/quran-light.png' width='90' style='margin-bottom: 10px;' />
-        <h1>🌙 رفيق القرآن</h1>
-        <p style='color: #666; font-size: 17px;'>دليلك اليومي لحفظ، فهم، وتدبر آيات الله 💖</p>
-        <hr style='border: 1px solid #ccc; width: 70%; margin: auto;'>
+<div class="header-bar">
+    <div class="header-title">📖 رفيق القرآن</div>
+    <div class="quick-links">
+        <a href="#" onclick="window.scrollTo(0, 0)">🏠 الرئيسية</a>
+        <a href="#sidebar">📚 القائمة</a>
+        <a href="#" onclick="window.scrollTo(0, document.body.scrollHeight)">🕋 تواصل</a>
     </div>
+</div>
 """, unsafe_allow_html=True)
 
-# قائمة الصفحات مع وصف بسيط لكل صفحة لتحسين تجربة المستخدم
+# عنوان رئيسي واقتباس
+st.markdown('<div class="main-title">مرحباً بك في تطبيق رفيق القرآن 🌙</div>', unsafe_allow_html=True)
+st.markdown('<div class="quote">"خيركم من تعلم القرآن وعلمه" – النبي محمد ﷺ</div>', unsafe_allow_html=True)
+
+# تعريف الصفحات
 pages = {
-    "لوحة التحكم": "ملخص شامل وإحصائيات التقدم في رحلتك القرآنية.",
-    "الاستماع": "استمع إلى تلاوات مؤثرة من كبار القراء.",
-    "مُخطط الحفظ": "نظم جدولك لحفظ القرآن الكريم بكل سهولة.",
-    "مُساعد الحفظ (تكرار)": "أداة لمساعدتك على التكرار والتثبيت.",
-    "تفسير": "تدبر وتفهم معاني الآيات بطريقة مبسطة.",
-    "لعبة المراجعة": "اختبر ذاكرتك مع ألعاب مراجعة ممتعة.",
-    "سؤال قرآنى": "اطرح أي سؤال عن سور القرآن واحصل على إجابة مدعومة."
+    "لوحة التحكم": "ملخص شامل وإحصائيات التطبيق",
+    "الاستماع": "استمع إلى التلاوات الصوتية",
+    "مُخطط الحفظ": "خطط جدول حفظك بطريقة منظمة",
+    "مُساعد الحفظ (تكرار)": "ساعد نفسك بالتكرار والتركيز",
+    "تفسير": "فهم معاني القرآن الكريم",
+    "لعبة المراجعة": "اختبر معلوماتك في مراجعة ممتعة",
+    "سؤال قرآنى": "اسأل أي سؤال عن القرآن واستفد"
 }
 
-st.sidebar.title("📚 القائمة الرئيسية")
+# القائمة الجانبية
+st.sidebar.title("📌 القائمة الرئيسية")
 page = st.sidebar.radio("اختر الصفحة:", list(pages.keys()))
 
-# عرض وصف صغير تحت كل اختيار في القائمة الجانبية
+# وصف مختصر تحت الاختيار الحالي
 for p, desc in pages.items():
     if p == page:
-        st.sidebar.markdown(f'<div class="description">{desc}</div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<span style="color:{secondary_color}; font-size:13px;">{desc}</span>', unsafe_allow_html=True)
         break
 
-# عرض الصفحة المختارة
+# تحميل وتشغيل الصفحة المناسبة
 if page == "لوحة التحكم":
     import safahat.dash_01 as dash
     dash.app()
-
 elif page == "الاستماع":
     import safahat.estimaa_02 as estimaa
     estimaa.app()
-
 elif page == "مُخطط الحفظ":
     import safahat.hifz_planner_03 as hifz
     hifz.app()
-
 elif page == "مُساعد الحفظ (تكرار)":
     import safahat.hifz_helper_04 as helper
     helper.app()
-
 elif page == "تفسير":
     import safahat.tafsir_05 as tafsir
     tafsir.app()
-
 elif page == "لعبة المراجعة":
     import safahat.moraj3a as memory
     memory.app()
-
 elif page == "سؤال قرآنى":
     import safahat.ask_quran as ask
     ask.app()
