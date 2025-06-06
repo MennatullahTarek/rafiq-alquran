@@ -32,11 +32,9 @@ def get_context_from_surah(surah_name, surah_data):
 # تحميل موديل LLM (QA model)
 @st.cache_resource
 def load_llm_model():
-    return pipeline(
-        "question-answering",
-        model="akhooli/bert-base-arabic-qa",
-        tokenizer="akhooli/bert-base-arabic-qa"
-    )
+    with st.spinner("⏳ جاري تحميل نموذج اللغة... يرجى الانتظار"):
+        model = pipeline("question-answering", model="Damith/AraELECTRA-discriminator-QuranQA")
+    return model
 
 # توليد الرد من الموديل والسياق
 def generate_response_with_llm(question, context, llm):
@@ -80,12 +78,15 @@ def app():
         st.markdown(f"👤 **أنت**: {user_msg}")
         st.markdown(f"🤖 **رفيق**: {bot_msg}")
 
-    # إدخال المستخدم
+    # إدخال المستخدم مع زر إرسال
     user_input = st.text_input("💬 أكتب رسالتك هنا:", key="user_input")
+    send_button = st.button("إرسال")
 
-    if user_input:
+    if send_button and user_input.strip():
         response = generate_response(user_input, surah_data, qa_pipeline)
         st.session_state.chat_history.append((user_input, response))
+        # تفريغ صندوق النص
+        st.session_state.user_input = ""
         st.experimental_rerun()
 
 if __name__ == "__main__":
