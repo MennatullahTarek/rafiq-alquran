@@ -101,7 +101,7 @@ st.markdown("""
 
 # محتوى الصفحة
 if current_page == "🏠 الرئيسية":
-    st.markdown('<div class="main-title" style="margin-top:70px;">خيركم من تعلم القرآن وعلمه ✨</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title" style="margin-top:70px;">  رفيق القرآن : ابدأ رحلتك الآن ✨</div>', unsafe_allow_html=True)
     st.markdown('<div class="quote">“خيرهم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
     st.markdown("""
     <div class="centered-image">
