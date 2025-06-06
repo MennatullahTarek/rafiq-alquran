@@ -121,7 +121,6 @@
 # st.markdown(f'<div class="bottom-nav">{footer_html}</div>', unsafe_allow_html=True)
 
 
-
 import streamlit as st
 import random
 
@@ -159,7 +158,7 @@ pages = {
     "❓ سؤال قرآنى":     "safahat.ask_quran"
 }
 
-# تهيئة الحالة
+# استخدام session_state لتتبع الصفحة الحالية
 if "current_page" not in st.session_state:
     st.session_state.current_page = "🏠 الرئيسية"
 
@@ -178,32 +177,28 @@ st.markdown(f"""
         display: block;
     }}
     .centered-image img:hover {{transform: scale(1.05);}}
-    .bottom-nav {{
-        position: fixed; bottom:0; left:0; width:100%;
+
+    /* شكل الفوتر الجديد */
+    div[data-testid="stHorizontalBlock"] > div {{
         background-color: {theme['primary']};
-        display:flex; justify-content:center;
-        padding:12px 0; border-top:3px solid {theme['accent']};
-        z-index: 999;
+        padding: 10px 0;
+        border-top: 3px solid {theme['accent']};
+        border-radius: 0px;
+        text-align: center;
     }}
-    .bottom-nav button {{
-        color:white;
-        margin:0 15px;
-        background:none;
-        border:none;
-        font-weight:bold;
-        font-size:14px;
-        padding:6px 12px;
-        border-radius:8px;
-        transition: background-color 0.3s;
-        cursor:pointer;
+    button[kind="secondary"] {{
+        background-color: transparent;
+        border: none;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        border-radius: 8px;
+        padding: 6px 12px;
+        cursor: pointer;
     }}
-    .bottom-nav button:hover {{
-        background-color:{theme['accent']};
-        color:black;
-    }}
-    .bottom-nav button.active {{
-        background-color:{theme['accent']};
-        color:black;
+    button[kind="secondary"]:hover {{
+        background-color: {theme['accent']};
+        color: black !important;
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -215,12 +210,20 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# محتوى الصفحة
+st.markdown("<br><br><br>", unsafe_allow_html=True)  # Space after fixed top bar
+
+# محتوى الصفحة الحالية
 current_page = st.session_state.current_page
 
+def load_page(page_key):
+    mod_name = pages.get(page_key)
+    if mod_name:
+        mod = __import__(mod_name, fromlist=['app'])
+        mod.app()
+
 if current_page == "🏠 الرئيسية":
-    st.markdown('<div class="main-title" style="margin-top:70px;">رفيق القرآن : ابدأ رحلتك الآن ✨</div>', unsafe_allow_html=True)
-    st.markdown('<div class="quote">“خيركم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title"> رفيق القرآن : ابدأ رحلتك الآن ✨</div>', unsafe_allow_html=True)
+    st.markdown('<div class="quote">“خيركم من تعلم القرآن وعلمه – النبي محمد ﷺ</div>', unsafe_allow_html=True)
     st.markdown("""
     <div class="centered-image">
         <img src="https://png.pngtree.com/png-clipart/20220223/original/pngtree-moslem-kid-read-quran-png-image_7311235.png" alt="Quran Kid">
@@ -228,26 +231,16 @@ if current_page == "🏠 الرئيسية":
     """, unsafe_allow_html=True)
     st.markdown(f'<div class="quote">🌟 مقتطف اليوم: {random.choice(daily_ayahs)}</div>', unsafe_allow_html=True)
 else:
-    # تحميل الصفحة المحددة
-    mod_name = pages.get(current_page)
-    if mod_name:
-        mod = __import__(mod_name, fromlist=['app'])
-        mod.app()
+    load_page(current_page)
 
-# شريط التنقل السفلي (باستخدام buttons لتحديث session_state بدون reload)
-footer_html = '<div class="bottom-nav">'
-for page_name in pages.keys():
-    active_class = "active" if page_name == current_page else ""
-    footer_html += f"""
-    <form action="" method="post">
-        <button class="{active_class}" name="nav_button" value="{page_name}" formmethod="post">{page_name}</button>
-    </form>
-    """
-footer_html += '</div>'
+# شريط التنقل السفلي
+st.markdown("<br><br><br>", unsafe_allow_html=True)  # Spacer before footer
 
-# التحكم في التنقل
-if "nav_button" in st.session_state:
-    st.session_state.current_page = st.session_state.nav_button
-
-st.markdown(footer_html, unsafe_allow_html=True)
-
+with st.container():
+    cols = st.columns(len(pages))
+    for i, page_name in enumerate(pages.keys()):
+        is_active = page_name == current_page
+        button_label = page_name + (" ⬅️" if is_active else "")
+        if cols[i].button(button_label, use_container_width=True):
+            st.session_state.current_page = page_name
+            st.rerun()
