@@ -27,7 +27,6 @@ daily_ayahs = [
 # صفحات التطبيق
 pages = {
     "🏠 الرئيسية": None,
-    "📊 لوحة التحكم":  "safahat.dash_01",
     "🎧 الاستماع":       "safahat.estimaa_02",
     "🗓️ مُخطط الحفظ":    "safahat.hifz_planner_03",
     "🔁 مُساعد الحفظ":    "safahat.hifz_helper_04",
@@ -62,18 +61,26 @@ st.markdown(f"""
         transform: scale(1.05);
     }}
     .bottom-nav {{position: fixed; bottom:0; left:0; width:100%; background-color: {theme['primary']}; display:flex; justify-content:center; padding:12px 0; border-top:3px solid {theme['accent']}; z-index: 999;}}
-    .bottom-nav a {{
-        color:white; 
-        margin:0 15px; 
-        text-decoration:none; 
-        font-weight:bold; 
-        font-size:14px; 
-        padding:6px 12px; 
-        border-radius:8px; 
-        transition: background-color 0.3s;
+    .bottom-nav button {{
+        background: none;
+        border: none;
+        color: white;
+        margin: 0 15px;
+        font-weight: bold;
+        font-size: 14px;
+        padding: 6px 12px;
+        border-radius: 8px;
         cursor: pointer;
+        transition: background-color 0.3s;
     }}
-    .bottom-nav a:hover {{background-color:{theme['accent']}; color:black;}}
+    .bottom-nav button:hover {{
+        background-color: {theme['accent']};
+        color: black;
+    }}
+    .bottom-nav .active {{
+        background-color: {theme['accent']};
+        color: black;
+    }}
     hr {{border:none; border-top:2px solid {theme['secondary']}; margin:25px 0;}}
 </style>
 """, unsafe_allow_html=True)
@@ -89,13 +96,18 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# قراءة صفحة محددة من query params أو الافتراضي "🏠 الرئيسية"
-query_params = st.experimental_get_query_params()
-current_page = query_params.get("page", ["🏠 الرئيسية"])[0]
+# إعداد قيمة الصفحة الحالية في session_state لو مش موجودة
+if "page" not in st.session_state:
+    st.session_state.page = "🏠 الرئيسية"
 
-# عرض محتوى الصفحة الرئيسية
+def set_page(page_name):
+    st.session_state.page = page_name
+
+# عرض الصفحة حسب القيمة في session_state
+current_page = st.session_state.page
+
 if current_page == "🏠 الرئيسية":
-    st.markdown('<div class="main-title" id="الرئيسية">  رفيق القرآن : ابدأ رحلتك الآن  ✨</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title" id="الرئيسية">خيركم من تعلم القرآن وعلمه ✨</div>', unsafe_allow_html=True)
     st.markdown('<div class="quote">“خيرهم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
     st.markdown("""
     <div class="centered-image">
@@ -105,7 +117,6 @@ if current_page == "🏠 الرئيسية":
     st.markdown(f'<div class="quote" id="مقتطف">🌟 مقتطف اليوم: {random.choice(daily_ayahs)}</div>', unsafe_allow_html=True)
     st.markdown("<hr />", unsafe_allow_html=True)
 else:
-    # استيراد وعرض صفحة أخرى حسب التحديد
     page_mod = pages.get(current_page)
     if page_mod:
         mod = __import__(page_mod, fromlist=['app'])
@@ -113,10 +124,19 @@ else:
     else:
         st.warning("هذه الصفحة غير متوفرة حالياً.")
 
-# شريط تنقل سفلي متفاعل (يستخدم query params لتغيير الصفحة)
-links_html = ""
-for name in pages.keys():
-    active_style = "background-color:" + theme['accent'] + "; color:black;" if name == current_page else ""
-    links_html += f'<a href="?page={name}" style="{active_style}">{name}</a>'
+# شريط تنقل سفلي متفاعل مع أزرار لتغيير الصفحة
+cols = st.columns(len(pages))
+for i, (name, _) in enumerate(pages.items()):
+    btn_class = "active" if name == current_page else ""
+    with cols[i]:
+        if st.button(name, key=f"btn_{i}"):
+            set_page(name)
 
-st.markdown(f'<div class="bottom-nav">{links_html}</div>', unsafe_allow_html=True)
+st.markdown("""
+<style>
+    /* إزالة بعض padding من الأزرار لجعلها متجاورة */
+    div.stButton > button {
+        width: 100%;
+    }
+</style>
+""", unsafe_allow_html=True)
