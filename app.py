@@ -24,7 +24,7 @@ daily_ayahs = [
     "فَاذْكُرُونِي أَذْكُرْكُمْ ﴿١٥٢﴾ - البقرة"
 ]
 
-# الصفحات المتاحة (بدون لوحة التحكم)
+# الصفحات المتاحة
 pages = {
     "🏠 الرئيسية": None,
     "🎧 الاستماع":       "safahat.estimaa_02",
@@ -35,12 +35,10 @@ pages = {
     "❓ سؤال قرآنى":     "safahat.ask_quran"
 }
 
-# قراءة صفحة محددة من رابط المتصفح (query param 'page')
-query_params = st.experimental_get_query_params()  # لو عندك نسخة Streamlit قديمة، جربي هذه الطريقة
-# لو عايزة تستخدم st.query_params فقط لو بتستخدم نسخة حديثة جداً:
-# query_params = st.query_params
+# قراءة صفحة محددة من رابط المتصفح
+query_params = st.query_params
+current_page = query_params.get("page", "🏠 الرئيسية")
 
-current_page = query_params.get("page", ["🏠 الرئيسية"])[0]
 if current_page not in pages:
     current_page = "🏠 الرئيسية"
 
@@ -101,7 +99,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# محتوى الصفحة الرئيسية أو الصفحات الأخرى
+# محتوى الصفحة
 if current_page == "🏠 الرئيسية":
     st.markdown('<div class="main-title" style="margin-top:70px;">خيركم من تعلم القرآن وعلمه ✨</div>', unsafe_allow_html=True)
     st.markdown('<div class="quote">“خيرهم من تعلم القرآن وعلمه” – النبي محمد ﷺ</div>', unsafe_allow_html=True)
@@ -114,10 +112,10 @@ if current_page == "🏠 الرئيسية":
 else:
     load_page(current_page)
 
-# شريط التنقل في الفوتر مع تمييز الصفحة المختارة
+# شريط التنقل السفلي
 footer_html = ""
 for page_name in pages.keys():
     active = "active" if page_name == current_page else ""
-    footer_html += f'<a href="?page={page_name}" class="{active}">{page_name}</a>'
+    footer_html += f'<a href="/?page={page_name}" class="{active}">{page_name}</a>'
 
 st.markdown(f'<div class="bottom-nav">{footer_html}</div>', unsafe_allow_html=True)
