@@ -33,7 +33,11 @@ def get_context_from_surah(surah_name, surah_data):
 # تحميل موديل LLM من Hugging Face (موديل توليد نص عربي)
 @st.cache_resource
 def load_llm_model():
-    return pipeline("text-generation", model="aubmindlab/aragpt2-small")
+    return pipeline(
+    "question-answering",
+    model="Elgeish/bert-base-arabic-qa",
+    tokenizer="Elgeish/bert-base-arabic-qa"
+)
 
 # توليد الرد باستخدام الموديل مع السياق
 def generate_response_with_llm(question, context, llm):
