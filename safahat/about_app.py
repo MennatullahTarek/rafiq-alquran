@@ -158,9 +158,13 @@ def app():
 
     st.markdown('<div class="fade-in container">', unsafe_allow_html=True)
 
-    # Title and decorative line
-    st.markdown('<h3 class="main-title">رفيق القرآن</h3>', unsafe_allow_html=True)
-    st.markdown('<div class="decor-line"></div>', unsafe_allow_html=True)
+    # Main title like "لماذا تختار"
+    st.markdown("""
+    <div class="why-choose">
+        <h3>رفيق القرآن</h3>
+    </div>
+    <div class="decor-line"></div>
+    """, unsafe_allow_html=True)
 
     st.markdown('<p class="subtitle">رحلتك السهلة والممتعة لحفظ وتدبر كتاب الله</p>', unsafe_allow_html=True)
 
