@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 import random
 
@@ -40,7 +38,7 @@ pages = {
 
 
 query_params = st.query_params
-current_page = query_params.get("page", "🏠 الرئيسية")
+current_page = query_params.get("page", ["🏠 الرئيسية"])[0]
 
 if current_page not in pages:
     current_page = "🏠 الرئيسية"
@@ -97,10 +95,13 @@ st.markdown(f"""
         width: 100%;
         background-color: {theme['primary']};
         display: flex;
-        justify-content: center;
-        padding: 12px 0;
+        justify-content: flex-start;
+        padding: 12px 20px;
         border-top: 3px solid {theme['accent']};
         z-index: 999;
+
+        direction: ltr;
+        text-align: left;
     }}
     .bottom-nav a {{
         color: white;
