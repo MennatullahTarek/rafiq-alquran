@@ -62,24 +62,27 @@ def app():
 
         days_per_week = st.slider("🗓️ كم يوم تحفظ في الأسبوع؟", 1, 7, 5)
 
-    # Summary box
+    # Summary box (enhanced)
     st.markdown(f"""
         <div style='
             background-color: {theme['highlight']};
-            border: 1px solid #cceabb;
-            border-radius: 12px;
-            padding: 20px 25px;
+            border-left: 6px solid {theme['primary']};
+            border-radius: 10px;
+            padding: 18px 22px;
             margin-top: 30px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             color: {theme['text']};
-            font-size: 1.1rem;
-            line-height: 2.2;
+            font-size: 1.05rem;
+            line-height: 2.1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         '>
-            <strong>📌 ملخص اختياراتك:</strong><br>
-            🔹 <strong>السورة:</strong> {surah_name}<br>
-            🔹 <strong>من الآية:</strong> {from_ayah} &nbsp;&nbsp;&nbsp;&nbsp; <strong>إلى الآية:</strong> {to_ayah}<br>
-            🔹 <strong>المدة:</strong> {total_days} يومًا<br>
-            🔹 <strong>أيام الحفظ أسبوعيًا:</strong> {days_per_week}
+            <div style='font-weight: 700; font-size: 1.2rem; margin-bottom: 10px;'>📌 ملخص اختياراتك</div>
+            <ul style='list-style: none; padding-right: 0;'>
+                <li>🔹 <strong>السورة:</strong> {surah_name}</li>
+                <li>🔹 <strong>من الآية:</strong> {from_ayah} &nbsp;&nbsp; <strong>إلى الآية:</strong> {to_ayah}</li>
+                <li>🔹 <strong>المدة:</strong> {total_days} يومًا</li>
+                <li>🔹 <strong>أيام الحفظ أسبوعيًا:</strong> {days_per_week}</li>
+            </ul>
         </div>
     """, unsafe_allow_html=True)
 
