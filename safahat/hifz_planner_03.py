@@ -43,31 +43,29 @@ def app():
                 margin-top: 30px;
                 margin-bottom: 10px;
             }}
-
-            .stButton>button {<
-            background-color: #388E3C;
-            color: white;
-            font-size: 1rem;
-            border-radius: 8px;
-            padding: 0.4rem 1rem;
-            margin-top: 10px;
-            border: 2px solid #2E7D32;
-            transition: all 0.3s ease;
-        }}
-    
-        .stButton>button:hover {{
-            background-color: #1B5E20;
-            border-color: #1B5E20;
-            transform: scale(1.03);
-        }}
-            </style>
-        """, unsafe_allow_html=True)
+            .stButton>button {{
+                background-color: #388E3C;
+                color: white;
+                font-size: 1rem;
+                border-radius: 8px;
+                padding: 0.4rem 1rem;
+                margin-top: 10px;
+                border: 2px solid #2E7D32;
+                transition: all 0.3s ease;
+            }}
+            .stButton>button:hover {{
+                background-color: #1B5E20;
+                border-color: #1B5E20;
+                transform: scale(1.03);
+            }}
+        </style>
+    """, unsafe_allow_html=True)
 
     # Title & subtitle
     st.markdown('<div class="title-section">📖 مُخطط الحفظ الذكي</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">اصنع خطتك حسب طاقتك وعدد الأيام، وسنقسمها لك بطريقة محفزة ومنظمة 🚀</div>', unsafe_allow_html=True)
 
-    # Input section inside expander
+    # Input section
     with st.expander("🛠️ اضبط خطة الحفظ"):
         col1, col2 = st.columns(2)
         with col1:
@@ -76,10 +74,9 @@ def app():
         with col2:
             to_ayah = st.number_input("🔚 إلى الآية", min_value=from_ayah, value=7)
             total_days = st.number_input("📅 عدد أيام الحفظ", min_value=1, value=7)
-
         days_per_week = st.slider("🗓️ كم يوم تحفظ في الأسبوع؟", 1, 7, 5)
 
-    # Summary box (enhanced)
+    # Summary
     st.markdown(f"""
         <div style='
             background-color: {theme['highlight']};
@@ -103,7 +100,7 @@ def app():
         </div>
     """, unsafe_allow_html=True)
 
-    # Plan creation function
+    # Create the plan
     def create_plan(from_ayah, to_ayah, total_days):
         total_ayahs = to_ayah - from_ayah + 1
         ayahs_per_day = math.ceil(total_ayahs / total_days)
@@ -157,7 +154,7 @@ def app():
         st.markdown('<div class="result-title">📋 خطة الحفظ التفصيلية:</div>', unsafe_allow_html=True)
         st.table(plan_df)
 
-        # Download buttons side by side
+        # Downloads
         col1, col2 = st.columns(2)
         with col1:
             csv = plan_df.to_csv(index=False).encode('utf-8-sig')
@@ -167,7 +164,6 @@ def app():
                 file_name="خطة_الحفظ.csv",
                 mime="text/csv",
             )
-
         with col2:
             img = plot_table(plan_df)
             st.download_button(
@@ -176,7 +172,6 @@ def app():
                 file_name="خطة_الحفظ.png",
                 mime="image/png"
             )
-
 
 if __name__ == "__main__":
     app()
