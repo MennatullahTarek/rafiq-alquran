@@ -105,41 +105,48 @@ def get_tafsir(surah, ayah, tafsir_id=91):
 
 # ----------------------------- App -----------------------------
 def app():
-    st.title("📖 رفيق القرآن")
-    st.markdown("### 🌟 استعرض آيات وتفاسير من القرآن الكريم بكل سهولة", unsafe_allow_html=True)
-    st.divider()
+    st.title("📖 رفيق القرآن: التفسير الميسر")
+    st.markdown("🎯 اختر السورة والآية، وسنُظهر لك نص الآية وتفسيرها، مع إمكانية التحميل كملف CSV.", unsafe_allow_html=True)
 
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        surah_name = st.selectbox("🕌 اختر السورة:", list(surahs.keys()))
-    with col2:
-        ayah_number = st.number_input("🔢 رقم الآية:", min_value=1, value=1)
+    surah_name = st.selectbox("🕌 اختر السورة", list(surahs.keys()), key="surah")
+    ayah_number = st.number_input("🔢 رقم الآية", min_value=1, value=1, key="ayah")
 
+    # الزر
     if st.button("📚 عرض التفسير"):
+        st.session_state['show_tafsir'] = True
+
         surah_num = surahs[surah_name]
-        st.info("⏳ جاري جلب البيانات من القرآن...")
+        st.session_state['ayah_text'] = get_ayah_text(surah_num, ayah_number)
+        st.session_state['tafsir'] = get_tafsir(surah_num, ayah_number)
+        st.session_state['surah_name'] = surah_name
+        st.session_state['ayah_number'] = ayah_number
 
-        ayah_text = get_ayah_text(surah_num, ayah_number)
-        tafsir = get_tafsir(surah_num, ayah_number)
+    # العرض
+    if st.session_state.get('show_tafsir', False):
+        st.success("📖 **نص الآية:**")
+        st.markdown(f"<div style='font-size:28px; direction: rtl; text-align: right;'>{st.session_state['ayah_text']}</div>", unsafe_allow_html=True)
 
-        st.markdown("#### 📖 نص الآية:")
-        st.markdown(f"<div class='verse-box'>{ayah_text}</div>", unsafe_allow_html=True)
+        st.success("📗 **التفسير:**")
+        st.markdown(f"<div style='direction: rtl; text-align: right;'>{st.session_state['tafsir']}</div>", unsafe_allow_html=True)
 
-        st.markdown("#### 📗 التفسير الميسر:")
-        st.markdown(f"<div class='tafsir-box'>{tafsir}</div>", unsafe_allow_html=True)
-
-        # تحميل التفسير
+        # CSV
         csv_buffer = StringIO()
         writer = csv.writer(csv_buffer)
         writer.writerow(["السورة", "رقم الآية", "نص الآية", "التفسير"])
-        writer.writerow([surah_name, ayah_number, ayah_text, tafsir])
+        writer.writerow([
+            st.session_state['surah_name'],
+            st.session_state['ayah_number'],
+            st.session_state['ayah_text'],
+            st.session_state['tafsir']
+        ])
 
         st.download_button(
-            label="💾 تحميل التفسير كملف CSV",
+            label="💾 تحميل التفسير كـ CSV",
             data=csv_buffer.getvalue(),
-            file_name=f"tafsir_{surah_name}_{ayah_number}.csv",
+            file_name=f"tafsir_{st.session_state['surah_name']}_{st.session_state['ayah_number']}.csv",
             mime="text/csv"
         )
+
 
 if __name__ == "__main__":
     app()
