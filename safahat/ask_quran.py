@@ -1,178 +1,147 @@
 import streamlit as st
 import json
 import re
+import os
 from transformers import pipeline
 import nest_asyncio
 
 
-
+# Apply asyncio patch for Streamlit compatibility with Transformers
 nest_asyncio.apply()
 
-PRIMARY_COLOR = "#2E7D32"  
-ACCENT_COLOR = "#FFC107"   
+# ========================
+# CONFIGURATION
+# ========================
+PRIMARY_COLOR = "#2E7D32"
+ACCENT_COLOR = "#FFC107"
 BACKGROUND_COLOR = "#fffbf2"
 
-@st.cache_resource
-def load_surah_data(filepath="surah_info.json"):
-    with open(filepath, "r", encoding="utf-8") as f:
-        return json.load(f)
 
-def extract_surah_name(question):
-    match = re.search(r"سورة\s+([\w]+)", question)
-    return match.group(1) if match else None
+# ========================
+# ENVIRONMENT & DATA LOADING
+# ========================
+class QuranData:
+    def __init__(self, filepath="surah_info.json"):
+        self.filepath = filepath
+        self.data = self.load_surah_data()
 
-def get_context_from_surah(surah_name, surah_data):
-    for surah in surah_data:
-        if surah_name == surah["name_ar"]:
-            return (
-                f"سورة {surah['name_ar']} هي سورة {surah['revelation_place']}، "
-                f"عدد آياتها {surah['verses_count']}، "
-                f"نزلت في {surah['revelation_time']}، "
-                f"والهدف منها: {surah['reasons']}."
-            )
-    return ""
+    @st.cache_resource
+    def load_surah_data(self):
+        with open(self.filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
 
-@st.cache_resource
-def load_llm_model():
-    with st.spinner("⏳ جاري تحميل نموذج اللغة... يرجى الانتظار"):
-        model = pipeline("question-answering", model="Damith/AraELECTRA-discriminator-QuranQA")
-    return model
 
-def generate_response_with_llm(question, context, llm):
-    if not context:
-        return "لا توجد معلومات كافية للإجابة على هذا السؤال."
-    result = llm(question=question, context=context)
-    return result["answer"]
+# ========================
+# TOOLS & MODEL WRAPPER
+# ========================
+class QuranQATools:
+    def __init__(self):
+        self.llm = self.load_llm_model()
 
-def generate_response(message, surah_data, llm):
-    msg = message.strip()
+    @st.cache_resource
+    def load_llm_model(self):
+        with st.spinner("⏳ جاري تحميل نموذج اللغة... يرجى الانتظار"):
+            return pipeline("question-answering", model="Damith/AraELECTRA-discriminator-QuranQA")
 
-    if "السلام" in msg or "مرحبا" in msg:
-        return "وعليكم السلام! أهلاً بك يا رفيق، كيف يمكنني مساعدتك اليوم؟ 😊"
+    @staticmethod
+    def extract_surah_name(question):
+        match = re.search(r"سورة\s+([\w]+)", question)
+        return match.group(1) if match else None
 
-    if "شكرا" in msg or "متشكر" in msg:
-        return "على الرحب والسعة! يسعدني مساعدتك في أي وقت 🌟"
+    def get_context(self, surah_name, surah_data):
+        for surah in surah_data:
+            if surah_name == surah["name_ar"]:
+                return (
+                    f"سورة {surah['name_ar']} هي سورة {surah['revelation_place']}، "
+                    f"عدد آياتها {surah['verses_count']}، "
+                    f"نزلت في {surah['revelation_time']}، "
+                    f"والهدف منها: {surah['reasons']}."
+                )
+        return ""
 
-    surah_name = extract_surah_name(msg)
-    if surah_name:
-        context = get_context_from_surah(surah_name, surah_data)
-        if context:
-            return generate_response_with_llm(msg, context, llm)
-        else:
-            return f"لم أتمكن من العثور على معلومات عن سورة {surah_name}."
+    def generate_answer(self, question, context):
+        if not context:
+            return "لا توجد معلومات كافية للإجابة على هذا السؤال."
+        result = self.llm(question=question, context=context)
+        return result["answer"]
 
-    return "لم أفهم سؤالك تمامًا 🤔، حاول تكتبه بطريقة أوضح أو اسألني عن سورة معينة."
 
-def render_message(user_msg, bot_msg):
-    message_html = f"""
-    <style>
-    .chat-container {{
-        max-width: 700px;
-        margin: 0 auto 10px auto;
-        font-family:  'Cairo', sans-serif;
-        background-color: {BACKGROUND_COLOR};
-        padding: 10px 20px;
-        border-radius: 12px;
-    }}
-    .message {{
-        display: flex;
-        margin-bottom: 12px;
-        align-items: flex-start;
-    }}
-    .user-msg {{
-        justify-content: flex-start;
-    }}
-    .bot-msg {{
-        justify-content: flex-end;
-    }}
-    .bubble {{
-        max-width: 70%;
-        padding: 12px 18px;
-        border-radius: 18px;
-        font-size: 16px;
-        line-height: 1.4;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-    }}
-    .user-bubble {{
-        background-color: #DCF8C6;
-        color: #000;
-        border-bottom-left-radius: 0;
-    }}
-    .bot-bubble {{
-        background-color: {ACCENT_COLOR};
-        color: #000;
-        border-bottom-right-radius: 0;
-    }}
-    .user-icon {{
-        font-weight: bold;
-        margin-right: 10px;
-        color: {PRIMARY_COLOR};
-        min-width: 30px;
-        text-align: center;
-    }}
-    .bot-icon {{
-        font-weight: bold;
-        margin-left: 10px;
-        color: #5a4b00;
-        min-width: 30px;
-        text-align: center;
-    }}
-    </style>
+# ========================
+# AGENT
+# ========================
+class QuranAgent:
+    def __init__(self, data: QuranData, tools: QuranQATools):
+        self.data = data
+        self.tools = tools
 
-    <div class="chat-container">
-        <div class="message user-msg">
-            <div class="user-icon">👤</div>
-            <div class="bubble user-bubble">{user_msg}</div>
-        </div>
-        <div class="message bot-msg">
-            <div class="bubble bot-bubble">{bot_msg}</div>
-            <div class="bot-icon">🤖</div>
-        </div>
-    </div>
-    """
-    st.markdown(message_html, unsafe_allow_html=True)
+    def answer_question(self, question):
+        surah_name = self.tools.extract_surah_name(question)
+        if not surah_name:
+            return "❗ يرجى ذكر اسم السورة في سؤالك. مثل: ما هدف سورة البقرة؟"
 
-def on_enter():
-    user_input = st.session_state.user_input.strip()
-    if user_input:
-        response = generate_response(user_input, st.session_state.surah_data, st.session_state.qa_pipeline)
-        st.session_state.chat_history.append((user_input, response))
-        st.session_state.user_input = ""
+        context = self.tools.get_context(surah_name, self.data.data)
+        answer = self.tools.generate_answer(question, context)
+        return f"📖 **الإجابة:** {answer}"
 
-def app():
+
+# ========================
+# UI
+# ========================
+def display_ui(agent: QuranAgent):
     st.markdown(
         f"""
-        <h1 style="text-align: center; color: {PRIMARY_COLOR}; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-        🤖 رفيق القرآن - شات بوت مع QA
-        </h1>
+        <style>
+        .stApp {{
+            background-color: {BACKGROUND_COLOR};
+            direction: rtl;
+            font-family: 'Cairo', sans-serif;
+        }}
+        .main-title {{
+            color: {PRIMARY_COLOR};
+            font-size: 2.2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }}
+        .subtitle {{
+            text-align: center;
+            color: #555;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }}
+        .stButton>button {{
+            background-color: {PRIMARY_COLOR};
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            border: none;
+            padding: 0.5rem 1.2rem;
+        }}
+        </style>
         """,
         unsafe_allow_html=True,
     )
 
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
-    if "user_input" not in st.session_state:
-        st.session_state.user_input = ""
+    st.markdown('<div class="main-title">🤖 مساعد تدبر السور القرآنية</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">اكتب سؤالك متضمنًا اسم السورة وسيتم استخراج الإجابة ✨</div>', unsafe_allow_html=True)
 
-    if "surah_data" not in st.session_state:
-        st.session_state.surah_data = load_surah_data()
-    if "qa_pipeline" not in st.session_state:
-        st.session_state.qa_pipeline = load_llm_model()
+    question = st.text_input("✍️ اكتب سؤالك هنا ")
+
+    if st.button("🔍 الحصول على الإجابة"):
+        if question.strip():
+            answer = agent.answer_question(question)
+            st.success(answer)
+        else:
+            st.warning("⚠️ يرجى إدخال سؤال أولًا.")
 
 
-    if st.session_state.chat_history:
-        for user_msg, bot_msg in st.session_state.chat_history:
-            render_message(user_msg, bot_msg)
 
-   
-    st.text_input(
-        "💬 أكتب رسالتك هنا:",
-        key="user_input",
-        on_change=on_enter,
-        placeholder="اكتب سؤالك واضغط Enter للإرسال...",
-        label_visibility="collapsed"
-    )
+def app():
+    data = QuranData()
+    tools = QuranQATools()
+    agent = QuranAgent(data, tools)
+    display_ui(agent)
+
 
 if __name__ == "__main__":
     app()
