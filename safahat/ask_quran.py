@@ -5,7 +5,6 @@ import os
 from transformers import pipeline
 import nest_asyncio
 
-
 # Apply asyncio patch for Streamlit compatibility with Transformers
 nest_asyncio.apply()
 
@@ -15,7 +14,6 @@ nest_asyncio.apply()
 PRIMARY_COLOR = "#2E7D32"
 ACCENT_COLOR = "#FFC107"
 BACKGROUND_COLOR = "#fffbf2"
-
 
 # ========================
 # ENVIRONMENT & DATA LOADING
@@ -30,20 +28,17 @@ class QuranData:
         self.filepath = filepath
         self.data = load_surah_data(self.filepath)
 
-
-
-
 # ========================
 # TOOLS & MODEL WRAPPER
 # ========================
+@st.cache_resource
+def load_llm_model():
+    with st.spinner("⏳ جاري تحميل نموذج اللغة... يرجى الانتظار"):
+        return pipeline("question-answering", model="Damith/AraELECTRA-discriminator-QuranQA")
+
 class QuranQATools:
     def __init__(self):
-        self.llm = self.load_llm_model()
-
-    @st.cache_resource
-    def load_llm_model(self):
-        with st.spinner("⏳ جاري تحميل نموذج اللغة... يرجى الانتظار"):
-            return pipeline("question-answering", model="Damith/AraELECTRA-discriminator-QuranQA")
+        self.llm = load_llm_model()
 
     @staticmethod
     def extract_surah_name(question):
@@ -67,7 +62,6 @@ class QuranQATools:
         result = self.llm(question=question, context=context)
         return result["answer"]
 
-
 # ========================
 # AGENT
 # ========================
@@ -84,7 +78,6 @@ class QuranAgent:
         context = self.tools.get_context(surah_name, self.data.data)
         answer = self.tools.generate_answer(question, context)
         return f"📖 **الإجابة:** {answer}"
-
 
 # ========================
 # UI
@@ -136,14 +129,14 @@ def display_ui(agent: QuranAgent):
         else:
             st.warning("⚠️ يرجى إدخال سؤال أولًا.")
 
-
-
+# ========================
+# MAIN APP
+# ========================
 def app():
     data = QuranData()
     tools = QuranQATools()
     agent = QuranAgent(data, tools)
     display_ui(agent)
-
 
 if __name__ == "__main__":
     app()
