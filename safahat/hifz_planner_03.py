@@ -70,7 +70,7 @@ def plot_plan_table(df):
 
 # ===================== UI =====================
 def display_ui(theme):
-    st.set_page_config(page_title="📖 مخطط الحفظ الذكي", layout="centered", page_icon="📘")
+    
 
     # Custom CSS
     st.markdown(f"""
