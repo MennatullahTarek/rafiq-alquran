@@ -1,125 +1,27 @@
 import streamlit as st
-import math
 import pandas as pd
+import math
 import matplotlib.pyplot as plt
 from io import BytesIO
 
-def app():
-   
-    theme = {
-        "primary": "#2E7D32",
-        "secondary": "#00796B",
-        "accent": "#FFC107",
-        "background": "#F9F9F9",
-        "text": "#333333",
-        "highlight": "#E6F4EA"
-    }
+# ===================== THEME & ENVIRONMENT =====================
+class PlanEnvironment:
+    def __init__(self):
+        self.default_theme = {
+            "primary": "#2E7D32",
+            "secondary": "#00796B",
+            "accent": "#FFC107",
+            "background": "#F9F9F9",
+            "text": "#333333",
+            "highlight": "#E6F4EA"
+        }
 
-  
-    st.markdown(f"""
-        <style>
-            html, body, .main {{
-                background-color: {theme['background']};
-                direction: rtl;
-                font-family: 'Cairo', sans-serif;
-            }}
-            .title-section {{
-                text-align: center;
-                color: {theme['primary']};
-                font-size: 2.5rem;
-                font-weight: 800;
-                margin-bottom: 10px;
-            }}
-            .subtitle {{
-                text-align: center;
-                color: {theme['secondary']};
-                font-size: 1.1rem;
-                margin-bottom: 35px;
-            }}
-            .result-title {{
-                font-size: 1.3rem;
-                font-weight: 700;
-                color: {theme['text']};
-                margin-top: 30px;
-                margin-bottom: 10px;
-            }}
-            .stButton>button {{
-                background-color: #388E3C;
-                color: white;
-                font-size: 1rem;
-                border-radius: 8px;
-                padding: 0.4rem 1rem;
-                margin-top: 10px;
-                border: 2px solid #2E7D32;
-                transition: all 0.3s ease;
-            }}
-            .stButton>button:hover {{
-                background-color: #1B5E20;
-                border-color: #1B5E20;
-                transform: scale(1.03);
-            }}
-            .stDownloadButton>button {{
-           background-color: #388E3C;
-           color: white;
-           font-size: 1rem;
-           border-radius: 8px;
-           padding: 0.4rem 1rem;
-           margin-top: 15px;
-           border: 2px solid #2E7D32;
-           transition: all 0.3s ease;
-           font-weight: bold;
-           cursor: pointer;
-       }}
-       
-       .stDownloadButton>button:hover {{
-           background-color: #1B5E20;
-           border-color: #1B5E20;
-           transform: scale(1.03);
-       }}
-        </style>
-    """, unsafe_allow_html=True)
+    def get_theme(self):
+        return self.default_theme
 
-   
-    st.markdown('<div class="title-section">📖 مُخطط الحفظ الذكي</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">اصنع خطتك حسب طاقتك وعدد الأيام، وسنقسمها لك بطريقة محفزة ومنظمة 🚀</div>', unsafe_allow_html=True)
-
- 
-    with st.expander("🛠️ اضبط خطة الحفظ"):
-        col1, col2 = st.columns(2)
-        with col1:
-            surah_name = st.text_input("📘 اسم السورة", "البقرة")
-            from_ayah = st.number_input("✳️ من الآية", min_value=1, value=1)
-        with col2:
-            to_ayah = st.number_input("🔚 إلى الآية", min_value=from_ayah, value=7)
-            total_days = st.number_input("📅 عدد أيام الحفظ", min_value=1, value=7)
-        days_per_week = st.slider("🗓️ كم يوم تحفظ في الأسبوع؟", 1, 7, 5)
-
- 
-    st.markdown(f"""
-        <div style='
-            background-color: {theme['highlight']};
-            border-left: 6px solid {theme['primary']};
-            border-radius: 10px;
-            padding: 18px 22px;
-            margin-top: 30px;
-            margin-bottom: 25px;
-            color: {theme['text']};
-            font-size: 1.05rem;
-            line-height: 2.1;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        '>
-            <div style='font-weight: 700; font-size: 1.2rem; margin-bottom: 10px;'>📌 ملخص اختياراتك</div>
-            <ul style='list-style: none; padding-right: 0;'>
-                <li>🔹 <strong>السورة:</strong> {surah_name}</li>
-                <li>🔹 <strong>من الآية:</strong> {from_ayah} &nbsp;&nbsp; <strong>إلى الآية:</strong> {to_ayah}</li>
-                <li>🔹 <strong>المدة:</strong> {total_days} يومًا</li>
-                <li>🔹 <strong>أيام الحفظ أسبوعيًا:</strong> {days_per_week}</li>
-            </ul>
-        </div>
-    """, unsafe_allow_html=True)
-
-   
-    def create_plan(from_ayah, to_ayah, total_days):
+# ===================== PLAN LOGIC =====================
+class HifzPlanner:
+    def create_plan(self, from_ayah, to_ayah, total_days):
         total_ayahs = to_ayah - from_ayah + 1
         ayahs_per_day = math.ceil(total_ayahs / total_days)
         plan = []
@@ -152,44 +54,91 @@ def app():
 
         return pd.DataFrame(plan)
 
-    
-    def plot_table(df):
-        fig, ax = plt.subplots(figsize=(7, len(df) * 0.6 + 1))
-        ax.axis('tight')
-        ax.axis('off')
-        table = ax.table(cellText=df.values, colLabels=df.columns, loc='center', cellLoc='right')
-        table.auto_set_font_size(False)
-        table.set_fontsize(12)
-        table.scale(1.2, 1.5)
-        buf = BytesIO()
-        plt.savefig(buf, format="png", bbox_inches='tight')
-        buf.seek(0)
-        return buf
+# ===================== UTILS =====================
+def plot_plan_table(df):
+    fig, ax = plt.subplots(figsize=(7, len(df) * 0.6 + 1))
+    ax.axis('tight')
+    ax.axis('off')
+    table = ax.table(cellText=df.values, colLabels=df.columns, loc='center', cellLoc='right')
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+    table.scale(1.2, 1.5)
+    buf = BytesIO()
+    plt.savefig(buf, format="png", bbox_inches='tight')
+    buf.seek(0)
+    return buf
+
+# ===================== UI =====================
+def display_ui(theme):
+    st.set_page_config(page_title="📖 مخطط الحفظ الذكي", layout="centered", page_icon="📘")
+
+    # Custom CSS
+    st.markdown(f"""
+        <style>
+            body {{
+                background-color: {theme['background']};
+                color: {theme['text']};
+            }}
+            .title-section {{
+                background-color: {theme['primary']};
+                color: white;
+                padding: 15px;
+                font-size: 28px;
+                border-radius: 10px;
+                text-align: center;
+                margin-bottom: 20px;
+            }}
+            .result-title {{
+                font-size: 24px;
+                color: {theme['secondary']};
+                margin-top: 30px;
+                margin-bottom: 10px;
+            }}
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="title-section">📖 مُخطط الحفظ الذكي</div>', unsafe_allow_html=True)
+
+    with st.expander("🛠️ اضبط خطة الحفظ"):
+        col1, col2 = st.columns(2)
+        with col1:
+            surah_name = st.text_input("📘 اسم السورة", "البقرة")
+            from_ayah = st.number_input("✳️ من الآية", min_value=1, value=1)
+        with col2:
+            to_ayah = st.number_input("🔚 إلى الآية", min_value=from_ayah, value=7)
+            total_days = st.number_input("📅 عدد أيام الحفظ", min_value=1, value=7)
+
+        days_per_week = st.slider("🗓️ كم يوم تحفظ في الأسبوع؟", 1, 7, 5)
+
+    st.markdown(f"""
+        <div style='background-color:{theme['highlight']}; padding:10px; border-radius:10px;'>
+        📌 <strong>ملخص:</strong><br>
+        السورة: <strong>{surah_name}</strong> <br>
+        الآيات: <strong>{from_ayah} إلى {to_ayah}</strong> <br>
+        عدد الأيام: <strong>{total_days}</strong>، أيام الحفظ في الأسبوع: <strong>{days_per_week}</strong>
+        </div>
+    """, unsafe_allow_html=True)
 
     if st.button("✨ أنشئ الخطة الآن"):
-        plan_df = create_plan(from_ayah, to_ayah, total_days)
+        planner = HifzPlanner()
+        plan_df = planner.create_plan(from_ayah, to_ayah, total_days)
 
         st.markdown('<div class="result-title">📋 خطة الحفظ التفصيلية:</div>', unsafe_allow_html=True)
         st.table(plan_df)
 
-     
         col1, col2 = st.columns(2)
         with col1:
             csv = plan_df.to_csv(index=False).encode('utf-8-sig')
-            st.download_button(
-                label="⬇️ تحميل كـ CSV",
-                data=csv,
-                file_name="خطة_الحفظ.csv",
-                mime="text/csv",
-            )
+            st.download_button("⬇️ تحميل كـ CSV", data=csv, file_name="خطة_الحفظ.csv", mime="text/csv")
         with col2:
-            img = plot_table(plan_df)
-            st.download_button(
-                label="🖼️ تحميل كصورة",
-                data=img,
-                file_name="خطة_الحفظ.png",
-                mime="image/png"
-            )
+            img = plot_plan_table(plan_df)
+            st.download_button("🖼️ تحميل كصورة", data=img, file_name="خطة_الحفظ.png", mime="image/png")
+
+# ===================== MAIN =====================
+def app():
+    env = PlanEnvironment()
+    theme = env.get_theme()
+    display_ui(theme)
 
 if __name__ == "__main__":
     app()
