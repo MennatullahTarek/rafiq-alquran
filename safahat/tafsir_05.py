@@ -50,6 +50,30 @@ def app():
     """, unsafe_allow_html=True)
 
 
+    st.markdown(f"""
+        <div style='
+            background-color: {theme['highlight']};
+            border-left: 6px solid {theme['primary']};
+            border-radius: 10px;
+            padding: 18px 22px;
+            margin-top: 30px;
+            margin-bottom: 25px;
+            color: {theme['text']};
+            font-size: 1.05rem;
+            line-height: 2.1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        '>
+            <div style='font-weight: 700; font-size: 1.2rem; margin-bottom: 10px;'>📌 ملخص اختياراتك</div>
+            <ul style='list-style: none; padding-right: 0;'>
+                <li>🔹 <strong>السورة:</strong> {surah_name}</li>
+                <li>🔹 <strong>من الآية:</strong> {from_ayah} &nbsp;&nbsp; <strong>إلى الآية:</strong> {to_ayah}</li>
+                <li>🔹 <strong>المدة:</strong> {total_days} يومًا</li>
+                <li>🔹 <strong>أيام الحفظ أسبوعيًا:</strong> {days_per_week}</li>
+            </ul>
+        </div>
+    """, unsafe_allow_html=True)
+
+
     # ----------------------------- Surahs -----------------------------
     surahs = {
         "الفاتحة": 1, "البقرة": 2, "آل عمران": 3, "النساء": 4, "المائدة": 5, "الأنعام": 6,
@@ -108,7 +132,7 @@ def app():
         with col2:
             ayah_number = st.number_input("🔢 رقم الآية", min_value=1, value=1, key="ayah")
 
-        submitted = st.form_submit_button("📚 عرض التفسير")
+        submitted = st.button("📚 عرض التفسير")
 
     if submitted:
         surah_num = surahs[surah_name]
