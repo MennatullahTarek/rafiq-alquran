@@ -4,9 +4,7 @@ import os
 import datetime
 import requests
 
-# ----------------------------
-# 🌍 البيئة Environment
-# ----------------------------
+
 
 class HifzEnvironment:
     def __init__(self, log_file="data/hifz_log.csv"):
@@ -26,9 +24,7 @@ class HifzEnvironment:
         else:
             return pd.DataFrame(columns=["سورة", "آية", "الوقت"])
 
-# ----------------------------
-# 🛠 الأدوات Tools
-# ----------------------------
+
 
 class QuranAPI:
     @staticmethod
@@ -42,9 +38,7 @@ class QuranAPI:
         except Exception:
             return None
 
-# ----------------------------
-# 🧠 الوكيل Agent
-# ----------------------------
+
 
 class HifzAgent:
     def __init__(self, environment, tools):
@@ -71,16 +65,14 @@ class HifzAgent:
             else:
                 st.dataframe(df.tail(10), use_container_width=True)
 
-# ----------------------------
-# 🎯 الواجهة والهدف Goal/UI
-# ----------------------------
+
 
 def display_ui(agent):
     # ثيم وخطوط ويمين لليسار
     st.markdown("""
     <style>
     body, .stApp {
-        background-color: #EDE7D9;
+        background-color: #fffbf2;
         direction: rtl;
         font-family: 'Cairo', sans-serif;
     }
@@ -172,9 +164,7 @@ def display_ui(agent):
 
     agent.show_log()
 
-# ----------------------------
-# 🚀 تشغيل التطبيق
-# ----------------------------
+
 
 def app():
     env = HifzEnvironment()
