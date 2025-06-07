@@ -7,54 +7,76 @@ import csv
 st.markdown("""
     <style>
     body, .stApp {
-        background-color: #EDE7D9;
-        direction: rtl;
+        background-color: #FAF9F6;
         font-family: 'Cairo', sans-serif;
-    }
-    .main-title {
-        color: #2E7D32;
-        font-size: 2.3rem;
-        font-weight: bold;
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    .subtitle {
-        text-align: center;
-        color: #555;
-        font-size: 1.1rem;
-        margin-bottom: 25px;
+        direction: rtl;
     }
 
-    button[kind="primary"] {
-        background-color: #2E7D32 !important;
-        color: white !important;
-        border-radius: 10px !important;
-        font-weight: bold !important;
-        border: none !important;
-        padding: 0.5rem 1.2rem !important;
+    .main-title {
+        color: #2C3E50;
+        font-size: 2.5rem;
+        font-weight: 800;
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #7F8C8D;
+        font-size: 1.2rem;
+        margin-bottom: 40px;
     }
 
     .stButton>button {
-        background-color: #388E3C;
+        background-color: #2C3E50;
         color: white;
         font-size: 1rem;
-        border-radius: 8px;
-        padding: 0.4rem 1rem;
-        margin-top: 10px;
-        border: 2px solid #2E7D32;
-        transition: all 0.3s ease;
+        border-radius: 10px;
+        padding: 0.6rem 1.2rem;
+        border: none;
+        transition: all 0.3s ease-in-out;
     }
 
     .stButton>button:hover {
-        background-color: #1B5E20;
-        border-color: #1B5E20;
+        background-color: #1A242F;
         transform: scale(1.03);
+    }
+
+    .card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
+    .card-title {
+        font-weight: 700;
+        font-size: 20px;
+        color: #2980B9;
+        margin-bottom: 10px;
+    }
+
+    .ayah-text {
+        font-size: 24px;
+        color: #2C3E50;
+        line-height: 2;
+        text-align: right;
+    }
+
+    .tafsir-text {
+        font-size: 17px;
+        color: #34495E;
+        line-height: 1.8;
+        text-align: right;
     }
 
     </style>
 """, unsafe_allow_html=True)
 
-# ----------------------------- Surahs -----------------------------
+# ----------------------------- Surah List -----------------------------
 surahs = {
     "الفاتحة": 1, "البقرة": 2, "آل عمران": 3, "النساء": 4, "المائدة": 5, "الأنعام": 6,
     "الأعراف": 7, "الأنفال": 8, "التوبة": 9, "يونس": 10, "هود": 11, "يوسف": 12,
@@ -101,27 +123,37 @@ def get_tafsir(surah, ayah, tafsir_id=91):
     else:
         return "❌ خطأ في الاتصال."
 
-# ----------------------------- App -----------------------------
+# ----------------------------- Main App -----------------------------
 def app():
-    st.title("📖 رفيق القرآن: التفسير الميسر")
-    st.markdown("🎯 اختر السورة والآية، وسنُظهر لك نص الآية وتفسيرها، مع إمكانية التحميل كملف .", unsafe_allow_html=True)
+    st.markdown("<div class='main-title'>📖 رفيق القرآن</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>✨ اختر السورة والآية لعرض التفسير الميسر وتحميله بسهولة</div>", unsafe_allow_html=True)
 
-    surah_name = st.selectbox("🕌 اختر السورة", list(surahs.keys()))
-    ayah_number = st.number_input("🔢 رقم الآية", min_value=1, value=1)
+    col1, col2 = st.columns(2)
+    with col1:
+        surah_name = st.selectbox("🕌 اختر السورة", list(surahs.keys()))
+    with col2:
+        ayah_number = st.number_input("🔢 رقم الآية", min_value=1, value=1)
 
-    # عرض التفسير عند الضغط فقط
     if st.button("📚 عرض التفسير"):
         surah_num = surahs[surah_name]
         ayah_text = get_ayah_text(surah_num, ayah_number)
         tafsir = get_tafsir(surah_num, ayah_number)
 
-        st.success("📖 **نص الآية:**")
-        st.markdown(f"<div style='font-size:28px; direction: rtl; text-align: right;'>{ayah_text}</div>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class="card">
+                <div class="card-title">📖 نص الآية:</div>
+                <div class="ayah-text">{ayah_text}</div>
+            </div>
+        """, unsafe_allow_html=True)
 
-        st.success("📗 **التفسير:**")
-        st.markdown(f"<div style='direction: rtl; text-align: right;'>{tafsir}</div>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class="card">
+                <div class="card-title">📝 التفسير:</div>
+                <div class="tafsir-text">{tafsir}</div>
+            </div>
+        """, unsafe_allow_html=True)
 
-        # إعداد ملف CSV
+        # إعداد CSV
         csv_buffer = StringIO()
         writer = csv.writer(csv_buffer)
         writer.writerow(["السورة", "رقم الآية", "نص الآية", "التفسير"])
@@ -134,5 +166,6 @@ def app():
             mime="text/csv"
         )
 
+# ----------------------------- Run -----------------------------
 if __name__ == "__main__":
     app()
