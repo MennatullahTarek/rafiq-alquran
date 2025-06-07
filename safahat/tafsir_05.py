@@ -28,18 +28,29 @@ st.markdown("""
         margin-bottom: 40px;
     }
 
+    button[kind="primary"] {
+        background-color: #2E7D32 !important;
+        color: white !important;
+        border-radius: 10px !important;
+        font-weight: bold !important;
+        border: none !important;
+        padding: 0.5rem 1.2rem !important;
+    }
+
     .stButton>button {
-        background-color: #2C3E50;
+        background-color: #388E3C;
         color: white;
         font-size: 1rem;
-        border-radius: 10px;
-        padding: 0.6rem 1.2rem;
-        border: none;
-        transition: all 0.3s ease-in-out;
+        border-radius: 8px;
+        padding: 0.4rem 1rem;
+        margin-top: 10px;
+        border: 2px solid #2E7D32;
+        transition: all 0.3s ease;
     }
 
     .stButton>button:hover {
-        background-color: #1A242F;
+        background-color: #1B5E20;
+        border-color: #1B5E20;
         transform: scale(1.03);
     }
 
@@ -55,7 +66,7 @@ st.markdown("""
     .card-title {
         font-weight: 700;
         font-size: 20px;
-        color: #2980B9;
+        color: #388E3C;
         margin-bottom: 10px;
     }
 
@@ -72,7 +83,6 @@ st.markdown("""
         line-height: 1.8;
         text-align: right;
     }
-
     </style>
 """, unsafe_allow_html=True)
 
@@ -123,49 +133,4 @@ def get_tafsir(surah, ayah, tafsir_id=91):
     else:
         return "❌ خطأ في الاتصال."
 
-# ----------------------------- Main App -----------------------------
-def app():
-    st.markdown("<div class='main-title'>📖 رفيق القرآن</div>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitle'>✨ اختر السورة والآية لعرض التفسير الميسر وتحميله بسهولة</div>", unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        surah_name = st.selectbox("🕌 اختر السورة", list(surahs.keys()))
-    with col2:
-        ayah_number = st.number_input("🔢 رقم الآية", min_value=1, value=1)
-
-    if st.button("📚 عرض التفسير"):
-        surah_num = surahs[surah_name]
-        ayah_text = get_ayah_text(surah_num, ayah_number)
-        tafsir = get_tafsir(surah_num, ayah_number)
-
-        st.markdown(f"""
-            <div class="card">
-                <div class="card-title">📖 نص الآية:</div>
-                <div class="ayah-text">{ayah_text}</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown(f"""
-            <div class="card">
-                <div class="card-title">📝 التفسير:</div>
-                <div class="tafsir-text">{tafsir}</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # إعداد CSV
-        csv_buffer = StringIO()
-        writer = csv.writer(csv_buffer)
-        writer.writerow(["السورة", "رقم الآية", "نص الآية", "التفسير"])
-        writer.writerow([surah_name, ayah_number, ayah_text, tafsir])
-
-        st.download_button(
-            label="💾 تحميل التفسير كـ CSV",
-            data=csv_buffer.getvalue(),
-            file_name=f"tafsir_{surah_name}_{ayah_number}.csv",
-            mime="text/csv"
-        )
-
-# ----------------------------- Run -----------------------------
-if __name__ == "__main__":
-    app()
+# -----------------------------
