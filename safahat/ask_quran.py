@@ -10,6 +10,7 @@ nest_asyncio.apply()
 # ========================
 # CONFIGURATION
 # ========================
+
 PRIMARY_COLOR = "#2E7D32"
 ACCENT_COLOR = "#FFC107"
 BACKGROUND_COLOR = "#fffbf2"
@@ -190,7 +191,7 @@ def display_ui(agent: QuranAgent):
             font-size: 1rem;
             margin-bottom: 20px;
         }}
-        button[kind="primary"] {{
+        button[kind="PRIMARY_COLOR"] {{
             background-color: #2E7D32 !important;
             color: white !important;
             border-radius: 10px !important;
