@@ -63,8 +63,78 @@ def generate_response(message, surah_data, llm):
 
     return "لم أفهم سؤالك تمامًا 🤔، حاول تكتبه بطريقة أوضح أو اسألني عن سورة معينة."
 
+# تصميم فقاعات الرسائل (HTML + CSS)
+def render_message(user_msg, bot_msg):
+    # استخدام HTML وCSS لترتيب الفقاعات بشكل جميل
+    message_html = f"""
+    <style>
+    .chat-container {{
+        max-width: 700px;
+        margin: 0 auto;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }}
+    .message {{
+        display: flex;
+        margin-bottom: 12px;
+        align-items: flex-start;
+    }}
+    .user-msg {{
+        justify-content: flex-start;
+    }}
+    .bot-msg {{
+        justify-content: flex-end;
+    }}
+    .bubble {{
+        max-width: 70%;
+        padding: 12px 18px;
+        border-radius: 18px;
+        font-size: 16px;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }}
+    .user-bubble {{
+        background-color: #DCF8C6;
+        color: #000;
+        border-bottom-left-radius: 0;
+    }}
+    .bot-bubble {{
+        background-color: #2F80ED;
+        color: white;
+        border-bottom-right-radius: 0;
+    }}
+    .user-icon {{
+        font-weight: bold;
+        margin-right: 10px;
+        color: #34B7F1;
+        min-width: 30px;
+        text-align: center;
+    }}
+    .bot-icon {{
+        font-weight: bold;
+        margin-left: 10px;
+        color: #E2E2E2;
+        min-width: 30px;
+        text-align: center;
+    }}
+    </style>
+
+    <div class="chat-container">
+        <div class="message user-msg">
+            <div class="user-icon">👤</div>
+            <div class="bubble user-bubble">{user_msg}</div>
+        </div>
+        <div class="message bot-msg">
+            <div class="bubble bot-bubble">{bot_msg}</div>
+            <div class="bot-icon">🤖</div>
+        </div>
+    </div>
+    """
+    st.markdown(message_html, unsafe_allow_html=True)
+
 # تطبيق Streamlit
 def app():
+    st.set_page_config(page_title="رفيق القرآن - شات بوت", page_icon="📖", layout="centered")
     st.title("🤖 رفيق القرآن - شات بوت مع QA")
 
     surah_data = load_surah_data()
@@ -76,23 +146,26 @@ def app():
     if "user_input" not in st.session_state:
         st.session_state.user_input = ""
 
-    # عرض المحادثة
-    for user_msg, bot_msg in st.session_state.chat_history:
-        st.markdown(f"👤 **أنت**: {user_msg}")
-        st.markdown(f"🤖 **رفيق**: {bot_msg}")
+    # عرض المحادثة بشكل فقاعات
+    if st.session_state.chat_history:
+        for user_msg, bot_msg in st.session_state.chat_history:
+            render_message(user_msg, bot_msg)
 
-    # إدخال المستخدم مع زر إرسال
-    user_input = st.text_input("💬 أكتب رسالتك هنا:", value=st.session_state.user_input)
-    send_button = st.button("◀️")
+    # إدخال المستخدم مع زر إرسال بجانب بعض
+    col1, col2 = st.columns([8,1])
+    with col1:
+        user_input = st.text_input("💬 أكتب رسالتك هنا:", value=st.session_state.user_input, key="input_box")
+    with col2:
+        send_button = st.button("▶️")
 
     if send_button and user_input.strip():
         response = generate_response(user_input, surah_data, qa_pipeline)
         st.session_state.chat_history.append((user_input, response))
-        st.session_state.user_input = ""  # امسح النص
-        st.rerun()
+        st.session_state.user_input = ""
+        st.experimental_rerun()  # إعادة تشغيل التطبيق لإظهار الرسالة الجديدة
 
     else:
-        st.session_state.user_input = user_input  # حافظ على النص الحالي لو ما اتبعتش
+        st.session_state.user_input = user_input  # الحفاظ على نص الإدخال لو لم يُرسل
 
 if __name__ == "__main__":
     app()
