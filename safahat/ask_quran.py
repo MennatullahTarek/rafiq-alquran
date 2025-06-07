@@ -69,7 +69,7 @@ def render_message(user_msg, bot_msg):
     .chat-container {{
         max-width: 700px;
         margin: 0 auto 10px auto;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family:  'Cairo', sans-serif;
         background-color: {BACKGROUND_COLOR};
         padding: 10px 20px;
         border-radius: 12px;
