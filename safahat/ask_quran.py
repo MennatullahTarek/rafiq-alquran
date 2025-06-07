@@ -4,8 +4,7 @@ import re
 from transformers import pipeline
 import nest_asyncio
 
-# ضبط صفحة الستريمليت في أول حاجة
-st.set_page_config(page_title="رفيق القرآن - شات بوت", page_icon="📖", layout="centered")
+
 
 nest_asyncio.apply()
 
@@ -216,7 +215,7 @@ def app_with_form():
         if submit_button and user_input.strip():
             response = generate_response(user_input, surah_data, qa_pipeline)
             st.session_state.chat_history.append((user_input, response))
-            st.experimental_rerun()
+            st.rerun()
 
 if __name__ == "__main__":
     app_with_form()
