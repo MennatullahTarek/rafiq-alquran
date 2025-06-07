@@ -52,10 +52,12 @@ def load_page(page_key):
 
 st.markdown(f"""
 <style>
-    .stApp {{
-        background-color: {theme['background']};
-        font-family: 'Segoe UI', sans-serif;
-    }}
+    body, .stApp {{
+             background-color: {theme['background']};
+            direction: rtl;
+            font-family: 'Cairo', sans-serif;
+        }}
+
     .fade-in {{
         animation: fadeIn 0.8s ease-in-out;
     }}
