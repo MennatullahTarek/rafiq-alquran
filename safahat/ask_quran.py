@@ -134,7 +134,7 @@ def render_message(user_msg, bot_msg):
 
 # تطبيق Streamlit
 def app():
-    st.set_page_config(page_title="رفيق القرآن - شات بوت", page_icon="📖", layout="centered")
+
     st.title("🤖 رفيق القرآن - شات بوت مع QA")
 
     surah_data = load_surah_data()
