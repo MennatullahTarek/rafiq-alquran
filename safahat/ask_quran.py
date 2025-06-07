@@ -5,7 +5,7 @@ import os
 from transformers import pipeline
 import nest_asyncio
 
-# Apply asyncio patch for Streamlit compatibility with Transformers
+# Apply asyncio patch for Streamlit compatibility
 nest_asyncio.apply()
 
 # ========================
@@ -70,14 +70,31 @@ class QuranAgent:
         self.data = data
         self.tools = tools
 
+    def is_greeting(self, question):
+        greetings = {
+            "السلام عليكم": "وعليكم السلام ورحمة الله وبركاته 🌸",
+            "مرحبا": "مرحبًا بك يا رفيق! 😊 كيف يمكنني مساعدتك في تدبر السور؟",
+            "من أنت": "أنا مساعد ذكي لتدبر سور القرآن الكريم ✨ اسألني عن أي سورة وسأساعدك.",
+            "أهلا": "أهلاً وسهلاً بك! 🌟 كيف يمكنني خدمتك؟",
+        }
+        q_clean = question.strip().lower().replace("؟", "").replace("!", "")
+        for key in greetings:
+            if key in q_clean:
+                return greetings[key]
+        return None
+
     def answer_question(self, question):
+        greeting_response = self.is_greeting(question)
+        if greeting_response:
+            return greeting_response
+
         surah_name = self.tools.extract_surah_name(question)
         if not surah_name:
             return "❗ يرجى ذكر اسم السورة في سؤالك. مثل: ما هدف سورة البقرة؟"
 
         context = self.tools.get_context(surah_name, self.data.data)
         answer = self.tools.generate_answer(question, context)
-        return f"📖 **الإجابة:** {answer}"
+        return f"📖 {answer}"
 
 # ========================
 # UI
@@ -104,13 +121,21 @@ def display_ui(agent: QuranAgent):
             font-size: 1rem;
             margin-bottom: 20px;
         }}
-        .stButton>button {{
-            background-color: {PRIMARY_COLOR};
-            color: white;
-            border-radius: 10px;
-            font-weight: bold;
-            border: none;
-            padding: 0.5rem 1.2rem;
+        .chat-bubble {{
+            background-color: #e0f7fa;
+            padding: 1rem;
+            border-radius: 20px;
+            margin-top: 1rem;
+            text-align: right;
+            font-size: 1.1rem;
+            border: 1px solid #81d4fa;
+            color: #004d40;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+        }}
+        .user-bubble {{
+            background-color: #fff3e0;
+            color: #6d4c41;
+            text-align: left;
         }}
         </style>
         """,
@@ -120,12 +145,21 @@ def display_ui(agent: QuranAgent):
     st.markdown('<div class="main-title">🤖 مساعد تدبر السور القرآنية</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">اكتب سؤالك متضمنًا اسم السورة وسيتم استخراج الإجابة ✨</div>', unsafe_allow_html=True)
 
-    question = st.text_input("✍️ اكتب سؤالك هنا ")
+    question = st.text_input("✍️ اكتب سؤالك هنا")
 
     if st.button("🔍 الحصول على الإجابة"):
         if question.strip():
+            # Show user's question
+            st.markdown(
+                f"<div class='chat-bubble user-bubble'>👤 {question}</div>",
+                unsafe_allow_html=True
+            )
+            # Show assistant's answer
             answer = agent.answer_question(question)
-            st.success(answer)
+            st.markdown(
+                f"<div class='chat-bubble'>🤖 {answer}</div>",
+                unsafe_allow_html=True
+            )
         else:
             st.warning("⚠️ يرجى إدخال سؤال أولًا.")
 
