@@ -61,7 +61,6 @@ def text_to_image(text, tafsir, font_path="arial.ttf", font_size=28, tafsir_font
 
 # === Main App (Agent Interface) ===
 def app():
-    st.set_page_config(page_title="تفسير القرآن - رفيق القرآن", layout="centered", initial_sidebar_state="collapsed")
     st.title("📖 رفيق القرآن - مساعد التفسير الذكي")
     st.markdown(f"🌟 {GREETING}", unsafe_allow_html=True)
 
