@@ -155,24 +155,7 @@ def render_message(user_msg, bot_msg):
             min-width: 30px;
             text-align: center;
         }}
-        .stForm button {{
-        background-color: #388E3C;
-        color: white;
-        font-size: 1rem;
-        border-radius: 8px;
-        padding: 0.4rem 1rem;
-        margin-top: 10px;
-        border: 2px solid #2E7D32;
-        transition: all 0.3s ease;
-        font-weight: bold;
-        cursor: pointer;
-    }}
 
-    .stForm button:hover {{
-        background-color: #1B5E20;
-        border-color: #1B5E20;
-        transform: scale(1.03);
-    }}
 
         </style>
 
@@ -235,6 +218,25 @@ def display_ui(agent: QuranAgent):
             border-color: #1B5E20;
             transform: scale(1.03);
         }}
+
+                .stForm button {{
+        background-color: #388E3C;
+        color: white;
+        font-size: 1rem;
+        border-radius: 8px;
+        padding: 0.4rem 1rem;
+        margin-top: 10px;
+        border: 2px solid #2E7D32;
+        transition: all 0.3s ease;
+        font-weight: bold;
+        cursor: pointer;
+    }}
+
+    .stForm button:hover {{
+        background-color: #1B5E20;
+        border-color: #1B5E20;
+        transform: scale(1.03);
+    }}
         </style>
     """, unsafe_allow_html=True)
 
