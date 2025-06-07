@@ -20,15 +20,17 @@ BACKGROUND_COLOR = "#fffbf2"
 # ========================
 # ENVIRONMENT & DATA LOADING
 # ========================
+@st.cache_resource
+def load_surah_data(filepath="surah_info.json"):
+    with open(filepath, "r", encoding="utf-8") as f:
+        return json.load(f)
+
 class QuranData:
     def __init__(self, filepath="surah_info.json"):
         self.filepath = filepath
-        self.data = self.load_surah_data()
+        self.data = load_surah_data(self.filepath)
 
-    @st.cache_resource
-    def load_surah_data(self):
-        with open(self.filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
+
 
 
 # ========================
