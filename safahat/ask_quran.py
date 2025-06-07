@@ -190,6 +190,31 @@ def display_ui(agent: QuranAgent):
             font-size: 1rem;
             margin-bottom: 20px;
         }}
+        button[kind="primary"] {{
+            background-color: #2E7D32 !important;
+            color: white !important;
+            border-radius: 10px !important;
+            font-weight: bold !important;
+            border: none !important;
+            padding: 0.5rem 1.2rem !important;
+        }}
+    
+        .stButton>button {{
+            background-color: #388E3C;
+            color: white;
+            font-size: 1rem;
+            border-radius: 8px;
+            padding: 0.4rem 1rem;
+            margin-top: 10px;
+            border: 2px solid #2E7D32;
+            transition: all 0.3s ease;
+        }}
+    
+        .stButton>button:hover {{
+            background-color: #1B5E20;
+            border-color: #1B5E20;
+            transform: scale(1.03);
+        }}
         </style>
     """, unsafe_allow_html=True)
 
