@@ -2,7 +2,7 @@ import streamlit as st
 
 class QuranAudioAgent:
     def __init__(self):
-        # بيانات القارئين
+  
         self.readers = {
             "عبدالباسط عبدالصمد": ("basit", 8),
             "الحصري": ("hus", 8),
@@ -13,7 +13,7 @@ class QuranAudioAgent:
             "فارس عباد": ("frs_a", 8),
         }
 
-        # بيانات السور
+    
         self.surahs = {
             "الفاتحة": 1,
             "البقرة": 2,
@@ -147,7 +147,7 @@ class QuranAudioAgent:
             return f"https://server{server_num}.mp3quran.net/{reader_slug}/{surah_num:03d}.mp3"
 
     def render_ui(self):
-        # تطبيق الثيم وتنسيق الصفحة
+        
         st.markdown(f"""
             <style>
                 html, body, .main {{
