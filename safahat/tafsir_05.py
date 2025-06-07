@@ -8,7 +8,7 @@ def app():
     st.markdown("""
         <style>
         body, .stApp {
-            background-color: #EDE7D9;
+            background-color: #fffbf2;
             direction: rtl;
             font-family: 'Cairo', sans-serif;
         }
