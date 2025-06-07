@@ -207,7 +207,7 @@ def display_ui(agent: QuranAgent):
         response = agent.answer_question(user_input)
         st.session_state.chat_history.append((user_input, response))
 
-    for user_msg, bot_msg in st.session_state.chat_history[::-1]:  # Show latest on top
+    for user_msg, bot_msg in st.session_state.chat_history[::]: 
         render_message(user_msg, bot_msg)
 
 # ========================
