@@ -123,10 +123,10 @@ def app():
         tafsir_text = get_tafsir(surah_num, ayah_number)
 
         st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.success("📖 **نص الآية:**")
+      
         st.markdown(f"<div style='font-size:28px; direction: rtl; text-align: right;'>{ayah_text}</div>", unsafe_allow_html=True)
 
-        st.success("📗 **التفسير:**")
+      
         st.markdown(f"<div style='direction: rtl; text-align: right;'>{tafsir_text}</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
