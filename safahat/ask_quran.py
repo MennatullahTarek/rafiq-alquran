@@ -162,7 +162,7 @@ def app():
         response = generate_response(user_input, surah_data, qa_pipeline)
         st.session_state.chat_history.append((user_input, response))
         st.session_state.user_input = ""
-        st.experimental_rerun()  # إعادة تشغيل التطبيق لإظهار الرسالة الجديدة
+        st.rerun()  # إعادة تشغيل التطبيق لإظهار الرسالة الجديدة
 
     else:
         st.session_state.user_input = user_input  # الحفاظ على نص الإدخال لو لم يُرسل
