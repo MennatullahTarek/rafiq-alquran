@@ -4,7 +4,16 @@ import re
 from transformers import pipeline
 import nest_asyncio
 
+# ضبط صفحة الستريمليت في أول حاجة
+st.set_page_config(page_title="رفيق القرآن - شات بوت", page_icon="📖", layout="centered")
+
 nest_asyncio.apply()
+
+# ألوان الثيم حسب طلبك
+PRIMARY_COLOR = "#2E7D32"  # أخضر
+SECONDARY_COLOR = "#009688"
+ACCENT_COLOR = "#FFC107"   # ذهبي
+BACKGROUND_COLOR = "#fffbf2"
 
 # تحميل بيانات السور
 @st.cache_resource
@@ -65,13 +74,15 @@ def generate_response(message, surah_data, llm):
 
 # تصميم فقاعات الرسائل (HTML + CSS)
 def render_message(user_msg, bot_msg):
-    # استخدام HTML وCSS لترتيب الفقاعات بشكل جميل
     message_html = f"""
     <style>
     .chat-container {{
         max-width: 700px;
         margin: 0 auto;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: {BACKGROUND_COLOR};
+        padding: 10px 20px;
+        border-radius: 12px;
     }}
     .message {{
         display: flex;
@@ -99,21 +110,21 @@ def render_message(user_msg, bot_msg):
         border-bottom-left-radius: 0;
     }}
     .bot-bubble {{
-        background-color: #2F80ED;
-        color: white;
+        background-color: {ACCENT_COLOR};
+        color: #000;
         border-bottom-right-radius: 0;
     }}
     .user-icon {{
         font-weight: bold;
         margin-right: 10px;
-        color: #34B7F1;
+        color: {PRIMARY_COLOR};
         min-width: 30px;
         text-align: center;
     }}
     .bot-icon {{
         font-weight: bold;
         margin-left: 10px;
-        color: #E2E2E2;
+        color: #5a4b00;
         min-width: 30px;
         text-align: center;
     }}
@@ -132,10 +143,15 @@ def render_message(user_msg, bot_msg):
     """
     st.markdown(message_html, unsafe_allow_html=True)
 
-# تطبيق Streamlit
 def app():
-
-    st.title("🤖 رفيق القرآن - شات بوت مع QA")
+    st.markdown(
+        f"""
+        <h1 style="text-align: center; color: {PRIMARY_COLOR}; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        🤖 رفيق القرآن - شات بوت مع QA
+        </h1>
+        """,
+        unsafe_allow_html=True,
+    )
 
     surah_data = load_surah_data()
     qa_pipeline = load_llm_model()
@@ -151,21 +167,56 @@ def app():
         for user_msg, bot_msg in st.session_state.chat_history:
             render_message(user_msg, bot_msg)
 
-    # إدخال المستخدم مع زر إرسال بجانب بعض
-    col1, col2 = st.columns([8,1])
-    with col1:
-        user_input = st.text_input("💬 أكتب رسالتك هنا:", value=st.session_state.user_input, key="input_box")
-    with col2:
-        send_button = st.button("▶️")
+    # خانة الإدخال بدون زر - نرسل بالضغط Enter فقط
+    user_input = st.text_input("💬 أكتب رسالتك هنا:", value=st.session_state.user_input, key="input_box", on_change=None)
 
-    if send_button and user_input.strip():
-        response = generate_response(user_input, surah_data, qa_pipeline)
-        st.session_state.chat_history.append((user_input, response))
+    # زر افتراضي لإرسال عند الضغط Enter
+    if user_input.strip() and st.session_state.user_input != user_input:
+        # حدث عند التغيير فقط لمنع إعادة إرسال تلقائي
+        st.session_state.user_input = user_input
+
+    # طريقة معالجة إرسال Enter:
+    # لأن streamlit لا يدعم التعرف مباشرة على زر Enter في text_input بدون زر، الحل:
+    # نستخدم زر مخفي أو زر إرسال صغير لكن نختفيه، ونشجع المستخدم على الضغط Enter ثم الضغط زر إرسال (بس انت قلت لا زر إرسال)
+    # بالتالي، الطريقة الأفضل هي إرسال فور الضغط على زر Enter عن طريق on_change مع استدعاء دالة. لكن Streamlit محدود في هذا.
+    # لهذا، ممكن نعتمد على زر إرسال خفي أو زر بجانب الإدخال ولكن صغير جدًا.
+    # أو نستعمل st.form مع submit_on_enter=True.
+
+    # الحل الأفضل هنا هو استخدام st.form مع submit_on_enter=True
+
+def app_with_form():
+    st.markdown(
+        f"""
+        <h1 style="text-align: center; color: {PRIMARY_COLOR}; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        🤖 رفيق القرآن - شات بوت مع QA
+        </h1>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    surah_data = load_surah_data()
+    qa_pipeline = load_llm_model()
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    if "user_input" not in st.session_state:
         st.session_state.user_input = ""
-        st.rerun()  # إعادة تشغيل التطبيق لإظهار الرسالة الجديدة
 
-    else:
-        st.session_state.user_input = user_input  # الحفاظ على نص الإدخال لو لم يُرسل
+    # عرض المحادثة بشكل فقاعات
+    if st.session_state.chat_history:
+        for user_msg, bot_msg in st.session_state.chat_history:
+            render_message(user_msg, bot_msg)
+
+    # هنا نستخدم form ليدعم الضغط على Enter للإرسال
+    with st.form(key="chat_form", clear_on_submit=True):
+        user_input = st.text_input("💬 أكتب رسالتك هنا:", value="", key="input_box")
+        submit_button = st.form_submit_button(label="")
+
+        if submit_button and user_input.strip():
+            response = generate_response(user_input, surah_data, qa_pipeline)
+            st.session_state.chat_history.append((user_input, response))
+            st.experimental_rerun()
 
 if __name__ == "__main__":
-    app()
+    app_with_form()
