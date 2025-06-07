@@ -80,7 +80,7 @@ def display_ui(agent):
     st.markdown("""
     <style>
     body, .stApp {
-        background-color: #F5F5F5;
+        background-color: #EDE7D9;
         direction: rtl;
         font-family: 'Cairo', sans-serif;
     }
