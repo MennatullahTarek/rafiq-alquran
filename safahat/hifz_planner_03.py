@@ -97,7 +97,16 @@ def display_ui(theme):
 
             
         
-        .stForm button {{
+        button[kind="primary"] {{
+            background-color: #2E7D32 !important;
+            color: white !important;
+            border-radius: 10px !important;
+            font-weight: bold !important;
+            border: none !important;
+            padding: 0.5rem 1.2rem !important;
+        }}
+    
+        .stButton>button {{
             background-color: #388E3C;
             color: white;
             font-size: 1rem;
@@ -106,11 +115,9 @@ def display_ui(theme):
             margin-top: 10px;
             border: 2px solid #2E7D32;
             transition: all 0.3s ease;
-            font-weight: bold;
-            cursor: pointer;
         }}
     
-        .stForm button:hover {{
+        .stButton>button:hover {{
             background-color: #1B5E20;
             border-color: #1B5E20;
             transform: scale(1.03);
