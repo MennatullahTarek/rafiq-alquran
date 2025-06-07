@@ -8,71 +8,54 @@ import csv
 
 def app():
     # ----------------------------- Custom CSS Theme -----------------------------
-   # Theme colors
-    theme = {
-        "primary": "#2E7D32",
-        "secondary": "#00796B",
-        "accent": "#FFC107",
-        "background": "#F9F9F9",
-        "text": "#333333",
-        "highlight": "#E6F4EA"
-    }
-
-    # Apply custom CSS
-    st.markdown(f"""
+    st.markdown("""
         <style>
-            html, body, .main {{
-                background-color: {theme['background']};
-                direction: rtl;
-                font-family: 'Cairo', sans-serif;
-            }}
-            .title-section {{
-                text-align: center;
-                color: {theme['primary']};
-                font-size: 2.5rem;
-                font-weight: 800;
-                margin-bottom: 10px;
-            }}
-            .subtitle {{
-                text-align: center;
-                color: {theme['secondary']};
-                font-size: 1.1rem;
-                margin-bottom: 35px;
-            }}
-            .result-title {{
-                font-size: 1.3rem;
-                font-weight: 700;
-                color: {theme['text']};
-                margin-top: 30px;
-                margin-bottom: 10px;
-            }}
+        body, .stApp {
+            background-color: #fffbf2;
+            direction: rtl;
+            font-family: 'Cairo', sans-serif;
+        }
+        .main-title {
+            color: #2E7D32;
+            font-size: 2.3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #555;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+        /* زرار أخضر زي الكود الأول */
+        .stButton>button {
+            background-color: #388E3C;
+            color: white;
+            font-size: 1rem;
+            border-radius: 8px;
+            padding: 0.4rem 1rem;
+            margin-top: 10px;
+            border: 2px solid #2E7D32;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .stButton>button:hover {
+            background-color: #1B5E20;
+            border-color: #1B5E20;
+            transform: scale(1.03);
+        }
+        .card {
+            background-color: #F5F5F5;
+            border: 1px solid #DDD;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
         </style>
     """, unsafe_allow_html=True)
-
-
-    st.markdown(f"""
-        <div style='
-            background-color: {theme['highlight']};
-            border-left: 6px solid {theme['primary']};
-            border-radius: 10px;
-            padding: 18px 22px;
-            margin-top: 30px;
-            margin-bottom: 25px;
-            color: {theme['text']};
-            font-size: 1.05rem;
-            line-height: 2.1;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        '>
-            <div style='font-weight: 700; font-size: 1.2rem; margin-bottom: 10px;'>📌 ملخص اختياراتك</div>
-            <ul style='list-style: none; padding-right: 0;'>
-                <li>🔹 <strong>السورة:</strong> {surah_name}</li>
-                <li>🔹 <strong>من الآية:</strong> {from_ayah} &nbsp;&nbsp; <strong>إلى الآية:</strong> {to_ayah}</li>
-                <li>🔹 <strong>المدة:</strong> {total_days} يومًا</li>
-                <li>🔹 <strong>أيام الحفظ أسبوعيًا:</strong> {days_per_week}</li>
-            </ul>
-        </div>
-    """, unsafe_allow_html=True)
-
 
     # ----------------------------- Surahs -----------------------------
     surahs = {
@@ -132,7 +115,7 @@ def app():
         with col2:
             ayah_number = st.number_input("🔢 رقم الآية", min_value=1, value=1, key="ayah")
 
-        submitted = st.button("📚 عرض التفسير")
+        submitted = st.form_submit_button("📚 عرض التفسير")
 
     if submitted:
         surah_num = surahs[surah_name]
@@ -163,3 +146,4 @@ def app():
 # -------------- لتشغيل مباشر (اختياري) --------------
 if __name__ == "__main__":
     app()
+
