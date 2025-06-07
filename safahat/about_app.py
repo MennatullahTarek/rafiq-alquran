@@ -158,7 +158,7 @@ def app():
 
     st.markdown('<div class="fade-in container">', unsafe_allow_html=True)
 
-    # Main title like "لماذا تختار"
+ 
     st.markdown("""
     <div class="why-choose">
         <h3>رفيق القرآن</h3>
