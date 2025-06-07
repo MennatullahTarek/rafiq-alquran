@@ -4,54 +4,53 @@ from io import StringIO
 import csv
 
 # ----------------------------- Custom CSS Theme -----------------------------
-    st.markdown("""
-    <style>
-    body, .stApp {
-        background-color: #EDE7D9;
-        direction: rtl;
-        font-family: 'Cairo', sans-serif;
-    }
-    .main-title {
-        color: #2E7D32;
-        font-size: 2.3rem;
-        font-weight: bold;
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    .subtitle {
-        text-align: center;
-        color: #555;
-        font-size: 1.1rem;
-        margin-bottom: 25px;
-    }
+st.markdown("""
+<style>
+body, .stApp {
+    background-color: #EDE7D9;
+    direction: rtl;
+    font-family: 'Cairo', sans-serif;
+}
+.main-title {
+    color: #2E7D32;
+    font-size: 2.3rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+}
+.subtitle {
+    text-align: center;
+    color: #555;
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+}
 
-    button[kind="primary"] {
-        background-color: #2E7D32 !important;
-        color: white !important;
-        border-radius: 10px !important;
-        font-weight: bold !important;
-        border: none !important;
-        padding: 0.5rem 1.2rem !important;
-    }
+button[kind="primary"] {
+    background-color: #2E7D32 !important;
+    color: white !important;
+    border-radius: 10px !important;
+    font-weight: bold !important;
+    border: none !important;
+    padding: 0.5rem 1.2rem !important;
+}
 
-    .stButton>button {
-        background-color: #388E3C;
-        color: white;
-        font-size: 1rem;
-        border-radius: 8px;
-        padding: 0.4rem 1rem;
-        margin-top: 10px;
-        border: 2px solid #2E7D32;
-        transition: all 0.3s ease;
-    }
+.stButton>button {
+    background-color: #388E3C;
+    color: white;
+    font-size: 1rem;
+    border-radius: 8px;
+    padding: 0.4rem 1rem;
+    margin-top: 10px;
+    border: 2px solid #2E7D32;
+    transition: all 0.3s ease;
+}
 
-    .stButton>button:hover {
-        background-color: #1B5E20;
-        border-color: #1B5E20;
-        transform: scale(1.03);
-    }
-
-    </style>
+.stButton>button:hover {
+    background-color: #1B5E20;
+    border-color: #1B5E20;
+    transform: scale(1.03);
+}
+</style>
 """, unsafe_allow_html=True)
 
 # ----------------------------- Surahs -----------------------------
@@ -144,7 +143,6 @@ def app():
             file_name=f"tafsir_{st.session_state['surah_name']}_{st.session_state['ayah_number']}.csv",
             mime="text/csv"
         )
-
 
 if __name__ == "__main__":
     app()
