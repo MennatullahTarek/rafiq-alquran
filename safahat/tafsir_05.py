@@ -10,8 +10,9 @@ st.markdown("""
             background-color: #f1fdfc;
             font-family: 'Segoe UI', sans-serif;
         }
-        h1 {
+        h1, h2 {
             color: #00695c;
+            text-align: center;
         }
         .block-container {
             padding-top: 2rem;
@@ -23,12 +24,34 @@ st.markdown("""
             font-weight: bold;
             border-radius: 0.5rem;
             padding: 0.5rem 1rem;
+            transition: 0.3s ease;
         }
-        .stSelectbox > div {
+        .stButton button:hover, .stDownloadButton button:hover {
+            background-color: #004d40;
+        }
+        .stSelectbox > div, .stNumberInput input {
             direction: rtl;
-        }
-        .stNumberInput input {
             text-align: right;
+        }
+        .verse-box, .tafsir-box {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .verse-box {
+            font-size: 28px;
+            direction: rtl;
+            text-align: right;
+            line-height: 2;
+            color: #1b1b1b;
+        }
+        .tafsir-box {
+            direction: rtl;
+            text-align: right;
+            font-size: 18px;
+            color: #333333;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -82,38 +105,41 @@ def get_tafsir(surah, ayah, tafsir_id=91):
 
 # ----------------------------- App -----------------------------
 def app():
-    st.title("📖 رفيق القرآن: التفسير الميسر")
-    st.markdown("🎯 اختر السورة والآية، وسنُظهر لك نص الآية وتفسيرها، مع إمكانية التحميل كملف CSV.", unsafe_allow_html=True)
-    
-    surah_name = st.selectbox("🕌 اختر السورة", list(surahs.keys()))
-    ayah_number = st.number_input("🔢 رقم الآية", min_value=1, value=1)
-    
+    st.title("📖 رفيق القرآن")
+    st.markdown("### 🌟 استعرض آيات وتفاسير من القرآن الكريم بكل سهولة", unsafe_allow_html=True)
+    st.divider()
+
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        surah_name = st.selectbox("🕌 اختر السورة:", list(surahs.keys()))
+    with col2:
+        ayah_number = st.number_input("🔢 رقم الآية:", min_value=1, value=1)
+
     if st.button("📚 عرض التفسير"):
         surah_num = surahs[surah_name]
-        st.info("⏳ جاري جلب الآية والتفسير...")
-    
+        st.info("⏳ جاري جلب البيانات من القرآن...")
+
         ayah_text = get_ayah_text(surah_num, ayah_number)
         tafsir = get_tafsir(surah_num, ayah_number)
-    
-        st.success("📖 **نص الآية:**")
-        st.markdown(f"<div style='font-size:28px; direction: rtl; text-align: right;'>{ayah_text}</div>", unsafe_allow_html=True)
-    
-        st.success("📗 **التفسير:**")
-        st.markdown(f"<div style='direction: rtl; text-align: right;'>{tafsir}</div>", unsafe_allow_html=True)
-    
+
+        st.markdown("#### 📖 نص الآية:")
+        st.markdown(f"<div class='verse-box'>{ayah_text}</div>", unsafe_allow_html=True)
+
+        st.markdown("#### 📗 التفسير الميسر:")
+        st.markdown(f"<div class='tafsir-box'>{tafsir}</div>", unsafe_allow_html=True)
+
+        # تحميل التفسير
         csv_buffer = StringIO()
         writer = csv.writer(csv_buffer)
         writer.writerow(["السورة", "رقم الآية", "نص الآية", "التفسير"])
         writer.writerow([surah_name, ayah_number, ayah_text, tafsir])
-    
+
         st.download_button(
-            label="💾 تحميل التفسير كـ CSV",
+            label="💾 تحميل التفسير كملف CSV",
             data=csv_buffer.getvalue(),
             file_name=f"tafsir_{surah_name}_{ayah_number}.csv",
             mime="text/csv"
         )
-    
-    
 
 if __name__ == "__main__":
     app()
