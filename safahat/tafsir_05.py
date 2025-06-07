@@ -3,62 +3,59 @@ import requests
 from io import StringIO
 import csv
 
+
 def app():
     # ----------------------------- Custom CSS Theme -----------------------------
     st.markdown("""
-        <style>
-        body, .stApp {
-            background-color: #EDE7D9;
-            direction: rtl;
-            font-family: 'Cairo', sans-serif;
-        }
-        .main-title {
-            color: #2E7D32;
-            font-size: 2.3rem;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #555;
-            font-size: 1.1rem;
-            margin-bottom: 25px;
-        }
-        button[kind="primary"] {
-            background-color: #2E7D32 !important;
-            color: white !important;
-            border-radius: 10px !important;
-            font-weight: bold !important;
-            border: none !important;
-            padding: 0.5rem 1.2rem !important;
-        }
-        .stButton>button {
-            background-color: #388E3C;
-            color: white;
-            font-size: 1rem;
-            border-radius: 8px;
-            padding: 0.4rem 1rem;
-            margin-top: 10px;
-            border: 2px solid #2E7D32;
-            transition: all 0.3s ease;
-        }
-        .stButton>button:hover {
-            background-color: #1B5E20;
-            border-color: #1B5E20;
-            transform: scale(1.03);
-        }
-        .card {
-            background-color: #F5F5F5;
-            border: 1px solid #DDD;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 10px 0;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-        </style>
+    <style>
+    body, .stApp {
+        background-color: #F5F0E6;
+        direction: rtl;
+        font-family: 'Cairo', sans-serif;
+    }
+    
+    .main-title {
+        color: #2E7D32;
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    .subtitle {
+        text-align: center;
+        color: #555;
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+    }
+    
+    div.stButton > button {
+        background-color: #388E3C !important;
+        color: white !important;
+        font-weight: bold !important;
+        font-size: 1rem !important;
+        border-radius: 10px !important;
+        border: none !important;
+        padding: 0.5rem 1.2rem !important;
+        transition: all 0.3s ease;
+    }
+    
+    div.stButton > button:hover {
+        background-color: #1B5E20 !important;
+        transform: scale(1.05);
+    }
+    
+    .card {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        border-right: 5px solid #2E7D32;
+    }
+    </style>
     """, unsafe_allow_html=True)
-
+    
     # ----------------------------- Surahs -----------------------------
     surahs = {
         "الفاتحة": 1, "البقرة": 2, "آل عمران": 3, "النساء": 4, "المائدة": 5, "الأنعام": 6,
@@ -82,7 +79,7 @@ def app():
         "قريش": 106, "الماعون": 107, "الكوثر": 108, "الكافرون": 109, "النصر": 110,
         "المسد": 111, "الإخلاص": 112, "الفلق": 113, "الناس": 114
     }
-
+    
     # ----------------------------- API Functions -----------------------------
     def get_ayah_text(surah, ayah):
         url = f"https://api.quran.com/api/v4/quran/verses/uthmani?verse_key={surah}:{ayah}"
@@ -94,7 +91,7 @@ def app():
                 return "⚠️ لم يتم العثور على نص الآية."
         else:
             return "❌ خطأ في الاتصال."
-
+    
     def get_tafsir(surah, ayah, tafsir_id=91):
         url = f"https://api.quran.com/api/v4/tafsirs/{tafsir_id}/by_ayah/{surah}:{ayah}"
         response = requests.get(url)
@@ -105,46 +102,39 @@ def app():
                 return "⚠️ لم يتم العثور على التفسير."
         else:
             return "❌ خطأ في الاتصال."
-
-    # ----------------------------- UI -----------------------------
-    st.markdown("<div class='main-title'>📖 رفيق القرآن: التفسير الميسر</div>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitle'>🎯 اختر السورة والآية، وسنُظهر لك نص الآية وتفسيرها، مع إمكانية التحميل كملف CSV.</div>", unsafe_allow_html=True)
-
-    with st.form("tafisr_form"):
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            surah_name = st.selectbox("🕌 اختر السورة", list(surahs.keys()), key="surah")
-        with col2:
-            ayah_number = st.number_input("🔢 رقم الآية", min_value=1, value=1, key="ayah")
-
-        submitted = st.form_submit_button("📚 عرض التفسير")
-
-    if submitted:
-        surah_num = surahs[surah_name]
-        ayah_text = get_ayah_text(surah_num, ayah_number)
-        tafsir_text = get_tafsir(surah_num, ayah_number)
-
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.success("📖 **نص الآية:**")
-        st.markdown(f"<div style='font-size:28px; direction: rtl; text-align: right;'>{ayah_text}</div>", unsafe_allow_html=True)
-
-        st.success("📗 **التفسير:**")
-        st.markdown(f"<div style='direction: rtl; text-align: right;'>{tafsir_text}</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # CSV
-        csv_buffer = StringIO()
-        writer = csv.writer(csv_buffer)
-        writer.writerow(["السورة", "رقم الآية", "نص الآية", "التفسير"])
-        writer.writerow([surah_name, ayah_number, ayah_text, tafsir_text])
-
-        st.download_button(
-            label="💾 تحميل التفسير كـ CSV",
-            data=csv_buffer.getvalue(),
-            file_name=f"tafsir_{surah_name}_{ayah_number}.csv",
-            mime="text/csv"
-        )
-
-# -------------- لتشغيل مباشر (اختياري) --------------
-if __name__ == "__main__":
-    app()
+    
+    # ----------------------------- Main App -----------------------------
+    def app():
+        st.markdown("<h1 class='main-title'>📖 رفيق القرآن: التفسير الميسر</h1>", unsafe_allow_html=True)
+        st.markdown("<p class='subtitle'>🎯 اختر السورة والآية، وسنُظهر لك نص الآية وتفسيرها، مع إمكانية التحميل كملف CSV.</p>", unsafe_allow_html=True)
+    
+        surah_name = st.selectbox("🕌 اختر السورة", list(surahs.keys()))
+        ayah_number = st.number_input("🔢 رقم الآية", min_value=1, value=1)
+    
+        if st.button("📚 عرض التفسير"):
+            surah_num = surahs[surah_name]
+            ayah_text = get_ayah_text(surah_num, ayah_number)
+            tafsir = get_tafsir(surah_num, ayah_number)
+    
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.markdown(f"📖 <strong>نص الآية:</strong>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:28px; text-align:right'>{ayah_text}</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+    
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.markdown(f"📗 <strong>التفسير:</strong>", unsafe_allow_html=True)
+            st.markdown(f"<div style='text-align:right'>{tafsir}</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+    
+            # CSV
+            csv_buffer = StringIO()
+            writer = csv.writer(csv_buffer)
+            writer.writerow(["السورة", "رقم الآية", "نص الآية", "التفسير"])
+            writer.writerow([surah_name, ayah_number, ayah_text, tafsir])
+    
+            st.download_button(
+                label="💾 تحميل التفسير كـ CSV",
+                data=csv_buffer.getvalue(),
+                file_name=f"tafsir_{surah_name}_{ayah_number}.csv",
+                mime="text/csv"
+            )
