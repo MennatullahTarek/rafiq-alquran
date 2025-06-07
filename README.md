@@ -1,124 +1,113 @@
 
 
-# 📖 Rafiq Al-Quran: Your Intelligent Quran Companion
-
-**Rafiq Al-Quran** is a cutting-edge, multi-agent AI system crafted to enrich your Quranic learning experience. Combining powerful language models with trusted Quranic APIs, it offers interactive memorization tools, high-quality audio playback, detailed tafsir (exegesis), and an intelligent Q\&A chatbot — all accessible via a sleek, Arabic-optimized interface built on Streamlit.
-
----
-### 📱 App Screenshot  
-![Rafiq Al-Quran Homepage](https://drive.google.com/uc?export=view&id=1C6XylFOiZKNhMkBCZE_XtRsM2nF0f14C)
- 
-
 ---
 
-## 🌟 Features at a Glance
+# 📖 رفيق القرآن: رفيقك الذكي لتعلم القرآن
 
-### Multi-Agent Architecture
+**رفيق القرآن** هو نظام ذكاء اصطناعي متطور متعدد الوكلاء صُمم خصيصًا ليُثري تجربتك في تعلم القرآن الكريم. بدمج نماذج لغوية متقدمة مع واجهات برمجة تطبيقات موثوقة للقرآن، يقدّم لك أدوات تفاعلية للحفظ، تشغيل صوتي بجودة عالية، تفسير مفصل، ودردشة ذكية للإجابة على أسئلتك القرآنية — كل ذلك عبر واجهة سهلة الاستخدام ومخصصة للغة العربية، مبنية باستخدام Streamlit.
 
-* **QuranAudioAgent**: Stream recitations from multiple renowned Qaris.
-* **HifzAgent**: Personalized memorization tracking and progress logging.
-* **TafsirAgent**: Access authentic verse explanations via Quran.com API.
-* **Q\&A Agent**: AI-powered chatbot answering Quranic queries using the `AraELECTRA` LLM.
+---
+### 📱 فيديو تجربة التطبيق
 
-### Core Functionalities
+[![شاهد فيديو تجربة التطبيق](https://drive.google.com/uc?export=view&id=1C6XylFOiZKNhMkBCZE_XtRsM2nF0f14C)](https://drive.google.com/file/d/18vIfVlMsnEKo-SBzyIkL4ZZzKRIIwt3_/view?usp=sharing)
 
-* 🎧 Listen to any Ayah with your choice of reciter.
-* 📝 Plan and monitor your memorization journey with customizable Hifz schedules.
-* 🔍 Dive deep into verse-by-verse tafsir with trusted sources.
-* 🤖 Engage with an intelligent Quranic chatbot supporting Arabic and English.
-* 📊 Export progress and tafsir notes for offline review.
+*اضغط على الصورة لتشغيل الفيديو على جوجل درايف*
 
 
-### Tech Stack
-* **Python** + **Streamlit** (GUI)
-* **Hugging Face Transformers** (`AraELECTRA` model)
-* **Quran APIs**: MP3Quran, Alquran.cloud, Quran.com
-* **Pandas** (Data logging) | **Matplotlib** (Visualization)
-  
-
-## Featured UI Elements: 
-
-1. **Title & Quote**:  
-   - "خيركم من تعلّم القرآن وعلمه" - النبي محمد ﷺ  
-   - Sets the spiritual tone for the app.  
-
-2. **Navigation Menu**:  
-   - 📖 **تفسير** (Tafsir)  
-   - 🎧 **استماع** (Audio Playback)  
-   - 🗓️ **مخطط الحفظ** (Hifz Planner)  
-   - 🤖 **سؤال قرآني** (Q&A Chatbot)  
-   - 🏠 **الرئيسية** (Home)  
-
-3. **Daily Ayah**:  
-   - Rotates inspirational verses (e.g., "إن مع العسر يسرا").  
 
 ---
 
----
+## 🌟 أبرز الميزات
 
-## 🚀 Getting Started
+### بنية متعددة الوكلاء
 
-## 🖥️ Live Demo & Interface  
-Experience Rafiq Al-Quran instantly:  
-🔗 **[Try the Live Demo](https://rafiq-alquran-bhrre6ptt6ke4bt3jhr25e.streamlit.app/)**  
+* **وكيل الصوتيات (QuranAudioAgent):** استمع لتلاوات أشهر القراء بجودة عالية.
+* **وكيل الحفظ (HifzAgent):** تابع خطتك الشخصية للحفظ وسجّل تقدمك بسهولة.
+* **وكيل التفسير (TafsirAgent):** تصفح تفسير كل آية من مصادر موثوقة عبر Quran.com API.
+* **وكيل الأسئلة والأجوبة (Q\&A Agent):** دردشة ذكية ترد على استفساراتك القرآنية باستخدام نموذج AraELECTRA.
 
-### Navigation
+### الوظائف الأساسية
 
-Use the intuitive bottom menu to explore:
-
-* **🏠 Home:** Daily inspirational Ayah and quick links
-* **🎧 Audio:** Select Surah and Qari for recitation
-* **📖 Tafsir:** Explore verse explanations
-* **🤖 Q\&A:** Chat with the Quranic AI assistant
-* **📝 Hifz Planner:** Create and manage your memorization plan
-
-### Export Data
-* Download memorization logs (`hifz_helper.py`).
-* Save tafsir notes as CSV (`tafsir.py`).
+* 🎧 استمع لأي آية تختارها مع إمكانية اختيار القارئ المفضل لديك.
+* 📝 خطط وجدول مراحل حفظك مع متابعة مستمرة لتقدمك.
+* 🔍 استكشف تفسير الآيات بالتفصيل من مصادر معتمدة.
+* 🤖 تفاعل مع روبوت محادثة ذكي يدعم العربية والإنجليزية.
+* 📊 صدّر بيانات حفظك وتفسير الآيات لمراجعة بدون إنترنت.
 
 ---
 
-## 📂 Project Structure
+### التقنيات المستخدمة
+
+* **Python** + **Streamlit** (واجهة المستخدم)
+* **Hugging Face Transformers** (نموذج AraELECTRA)
+* **واجهات برمجة تطبيقات القرآن:** MP3Quran، Alquran.cloud، Quran.com
+* **Pandas** (لتسجيل البيانات) | **Matplotlib** (للتصورات)
+
+---
+
+## كيف تبدأ؟
+
+### 🖥️ جرب التطبيق مباشرًا:
+
+🔗 **[تجربة التطبيق](https://rafiq-alquran-bhrre6ptt6ke4bt3jhr25e.streamlit.app/)**
+
+---
+
+### التنقل داخل التطبيق
+
+* **🏠 الرئيسية:** آية اليوم وروابط سريعة
+* **🎧 الاستماع:** اختيار السورة والقارئ المفضل
+* **📖 التفسير:** شرح مفصل لكل آية
+* **🤖 سؤال قرآني:** دردشة ذكية للإجابة على استفساراتك
+* **📝 مخطط الحفظ:** أنشئ وادِر خطتك للحفظ
+
+---
+
+### تصدير البيانات
+
+* تنزيل سجلات الحفظ (`hifz_helper.py`)
+* حفظ ملاحظات التفسير بصيغة CSV (`tafsir.py`)
+
+---
+
+## 📂 هيكل المشروع
 
 ```
 rafiq-alquran/
-├── app.py                # Main Streamlit application
-├── estimaa.py            # QuranAudioAgent implementation
-├── hifz_helper.py        # HifzAgent for memorization tracking
-├── hifz_planner.py       # Memorization schedule planner
-├── morajaa.py            # Interactive review game
-├── tafsir.py             # TafsirAgent accessing Quran.com API
-├── ask_quran.py          # Q&A Agent with AraELECTRA LLM integration
-├── data/                 # Exported logs and user data
-├── requirements.txt      # Python dependencies
-└── README.md             # Project documentation
+├── app.py                # التطبيق الرئيسي المبني على Streamlit
+├── estimaa.py            # وكيل تشغيل الصوتيات
+├── hifz_helper.py        # وكيل متابعة الحفظ
+├── hifz_planner.py       # مخطط جدولة الحفظ
+├── morajaa.py            # لعبة مراجعة تفاعلية
+├── tafsir.py             # وكيل التفسير بالاستعانة بواجهة Quran.com
+├── ask_quran.py          # وكيل الأسئلة والأجوبة باستخدام AraELECTRA
+├── data/                 # ملفات البيانات والتصدير
+├── requirements.txt      # مكتبات بايثون المطلوبة
+└── README.md             # توثيق المشروع
 ```
 
 ---
 
-## 🌐 APIs & Models
+## 🌐 مصادر البيانات والنماذج
 
-* **Audio Sources:** [MP3Quran.net API](https://mp3quran.net/api)
-* **Tafsir & Verse Data:** [Quran.com API](https://quran.api-docs.io/)
-* **Verse Lookup:** [Alquran.cloud API](https://alquran.cloud/api)
-* **Language Model:** Hugging Face `AraELECTRA` for Arabic NLP
-
----
-
-## 🎯 Why Rafiq Al-Quran?
-
-This project bridges technology and spirituality by providing a comprehensive, AI-enhanced toolkit for Quran learners. Its multi-agent design ensures modular, scalable, and responsive interactions — empowering users to engage deeply with the Quran in a personalized and meaningful way.
+* **مصادر الصوت:** [MP3Quran.net API](https://mp3quran.net/api)
+* **بيانات التفسير والآيات:** [Quran.com API](https://quran.api-docs.io/)
+* **البحث عن الآيات:** [Alquran.cloud API](https://alquran.cloud/api)
+* **النموذج اللغوي:** نموذج `AraELECTRA` من Hugging Face لمعالجة اللغة العربية
 
 ---
 
-## 📧 Contact
+## 🎯 لماذا تختار رفيق القرآن؟
 
-For questions, feedback, or collaboration:
-**Email:** [menatarek04@gmail.com](mailto:menatarek04@gmail.com)
+لأن المشروع يدمج بين التقنية والروحانية ليقدّم لك أدوات شاملة معززة بالذكاء الاصطناعي، تساعدك على التفاعل مع القرآن الكريم بعمق وبطريقة شخصية تناسبك. التصميم متعدد الوكلاء يضمن لك تجربة مرنة، سريعة، وقابلة للتوسع.
 
 ---
 
+## 📧 تواصل معنا
 
+لأي استفسارات أو اقتراحات أو تعاون:
+**البريد الإلكتروني:** [menatarek04@gmail.com](mailto:menatarek04@gmail.com)
 
+---
 
 
