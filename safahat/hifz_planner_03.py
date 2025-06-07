@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 
 def app():
-    # Theme colors
+   
     theme = {
         "primary": "#2E7D32",
         "secondary": "#00796B",
@@ -15,7 +15,7 @@ def app():
         "highlight": "#E6F4EA"
     }
 
-    # Apply custom CSS
+  
     st.markdown(f"""
         <style>
             html, body, .main {{
@@ -61,11 +61,11 @@ def app():
         </style>
     """, unsafe_allow_html=True)
 
-    # Title & subtitle
+   
     st.markdown('<div class="title-section">📖 مُخطط الحفظ الذكي</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">اصنع خطتك حسب طاقتك وعدد الأيام، وسنقسمها لك بطريقة محفزة ومنظمة 🚀</div>', unsafe_allow_html=True)
 
-    # Input section
+ 
     with st.expander("🛠️ اضبط خطة الحفظ"):
         col1, col2 = st.columns(2)
         with col1:
@@ -76,7 +76,7 @@ def app():
             total_days = st.number_input("📅 عدد أيام الحفظ", min_value=1, value=7)
         days_per_week = st.slider("🗓️ كم يوم تحفظ في الأسبوع؟", 1, 7, 5)
 
-    # Summary
+ 
     st.markdown(f"""
         <div style='
             background-color: {theme['highlight']};
@@ -100,7 +100,7 @@ def app():
         </div>
     """, unsafe_allow_html=True)
 
-    # Create the plan
+   
     def create_plan(from_ayah, to_ayah, total_days):
         total_ayahs = to_ayah - from_ayah + 1
         ayahs_per_day = math.ceil(total_ayahs / total_days)
@@ -134,7 +134,7 @@ def app():
 
         return pd.DataFrame(plan)
 
-    # Image export
+    
     def plot_table(df):
         fig, ax = plt.subplots(figsize=(7, len(df) * 0.6 + 1))
         ax.axis('tight')
@@ -154,7 +154,7 @@ def app():
         st.markdown('<div class="result-title">📋 خطة الحفظ التفصيلية:</div>', unsafe_allow_html=True)
         st.table(plan_df)
 
-        # Downloads
+     
         col1, col2 = st.columns(2)
         with col1:
             csv = plan_df.to_csv(index=False).encode('utf-8-sig')
