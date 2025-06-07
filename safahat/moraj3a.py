@@ -8,7 +8,7 @@ import re
 import csv
 from io import StringIO
 
-# --- Custom CSS ---
+
 def apply_custom_styles():
     st.markdown("""
         <style>
@@ -84,7 +84,7 @@ def apply_custom_styles():
         </style>
     """, unsafe_allow_html=True)
 
-# --- Visual Score Indicator ---
+
 def render_score_visual(score):
     try:
         score = float(score)
@@ -108,7 +108,7 @@ def render_score_visual(score):
         </div>
     """
 
-# --- Agent: Text Processor ---
+
 class TextProcessor:
     @staticmethod
     def strip_tashkeel(text):
@@ -134,7 +134,7 @@ class AyahFetcher:
                 return "⚠️ لم يتم العثور على نص الآية."
         return "❌ فشل الاتصال بجلب الآية."
 
-# --- Agent: Tafsir Fetcher ---
+
 class TafsirFetcher:
     @staticmethod
     def get_tafsir(surah_id, ayah_number, tafsir_id=91):
@@ -147,7 +147,7 @@ class TafsirFetcher:
                 return "⚠️ لم يتم العثور على التفسير."
         return "❌ فشل الاتصال بجلب التفسير."
 
-# --- جلب سور القرآن ---
+
 def get_surahs():
     return {
         "الفاتحة": 1, "البقرة": 2, "آل عمران": 3, "النساء": 4, "المائدة": 5,
@@ -175,7 +175,7 @@ def get_surahs():
         "المسد": 111, "الإخلاص": 112, "الفلق": 113, "الناس": 114
     }
 
-# --- تقييم مبسط للتفسير ---
+
 def simple_tafsir_evaluation(user_tafsir, actual_tafsir):
     if not user_tafsir.strip():
         return "❌ لم تقم بإدخال تفسير."
@@ -186,7 +186,7 @@ def simple_tafsir_evaluation(user_tafsir, actual_tafsir):
     else:
         return "❌ التفسير غير واضح أو لا يتطابق مع التفسير الرسمي. التقييم: 4/10"
 
-# --- التطبيق الرئيسي ---
+
 def app():
     apply_custom_styles()
 
