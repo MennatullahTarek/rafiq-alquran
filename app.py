@@ -13,7 +13,7 @@ theme = {
     "primary": "#2E7D32",
     "secondary": "#009688",
     "accent": "#FFC107",
-    "background": "#EDE7D9"
+    "background": "#fffbf2"
 }
 
 
