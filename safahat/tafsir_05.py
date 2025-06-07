@@ -4,55 +4,53 @@ from io import StringIO
 import csv
 
 # ----------------------------- Custom CSS Theme -----------------------------
-st.markdown("""
+    st.markdown("""
     <style>
-        .stApp {
-            background-color: #f1fdfc;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        h1, h2 {
-            color: #00695c;
-            text-align: center;
-        }
-        .block-container {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-        }
-        .stButton button, .stDownloadButton button {
-            background-color: #00897b;
-            color: white;
-            font-weight: bold;
-            border-radius: 0.5rem;
-            padding: 0.5rem 1rem;
-            transition: 0.3s ease;
-        }
-        .stButton button:hover, .stDownloadButton button:hover {
-            background-color: #004d40;
-        }
-        .stSelectbox > div, .stNumberInput input {
-            direction: rtl;
-            text-align: right;
-        }
-        .verse-box, .tafsir-box {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 10px 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-        .verse-box {
-            font-size: 28px;
-            direction: rtl;
-            text-align: right;
-            line-height: 2;
-            color: #1b1b1b;
-        }
-        .tafsir-box {
-            direction: rtl;
-            text-align: right;
-            font-size: 18px;
-            color: #333333;
-        }
+    body, .stApp {
+        background-color: #EDE7D9;
+        direction: rtl;
+        font-family: 'Cairo', sans-serif;
+    }
+    .main-title {
+        color: #2E7D32;
+        font-size: 2.3rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .subtitle {
+        text-align: center;
+        color: #555;
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+    }
+
+    button[kind="primary"] {
+        background-color: #2E7D32 !important;
+        color: white !important;
+        border-radius: 10px !important;
+        font-weight: bold !important;
+        border: none !important;
+        padding: 0.5rem 1.2rem !important;
+    }
+
+    .stButton>button {
+        background-color: #388E3C;
+        color: white;
+        font-size: 1rem;
+        border-radius: 8px;
+        padding: 0.4rem 1rem;
+        margin-top: 10px;
+        border: 2px solid #2E7D32;
+        transition: all 0.3s ease;
+    }
+
+    .stButton>button:hover {
+        background-color: #1B5E20;
+        border-color: #1B5E20;
+        transform: scale(1.03);
+    }
+
     </style>
 """, unsafe_allow_html=True)
 
