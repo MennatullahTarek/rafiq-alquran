@@ -122,12 +122,24 @@ def app():
         ayah_text = get_ayah_text(surah_num, ayah_number)
         tafsir_text = get_tafsir(surah_num, ayah_number)
 
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-      
-        st.markdown(f"<div style='font-size:28px; direction: rtl; text-align: right;'>{ayah_text}</div>", unsafe_allow_html=True)
+        st.markdown("""
+            <div style="
+                background-color: #d4edda;  
+                border: 1px solid #c3e6cb; 
+                border-radius: 10px;
+                padding: 20px;
+                direction: rtl;
+                text-align: right;
+                margin-top: 20px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            ">
+        """, unsafe_allow_html=True)
+        
+        st.markdown(f"<div style='font-size:28px; font-weight: 600;'>{ayah_text}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='margin-top: 15px; font-size: 20px;'>{tafsir_text}</div>", unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
-      
-        st.markdown(f"<div style='direction: rtl; text-align: right;'>{tafsir_text}</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
         # CSV
