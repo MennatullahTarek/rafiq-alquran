@@ -5,7 +5,6 @@ import os
 from transformers import pipeline
 import nest_asyncio
 
-# Apply asyncio patch for Streamlit compatibility
 nest_asyncio.apply()
 
 # ========================
@@ -94,14 +93,84 @@ class QuranAgent:
 
         context = self.tools.get_context(surah_name, self.data.data)
         answer = self.tools.generate_answer(question, context)
-        return f"📖 {answer}"
+        return f"{answer}"
 
 # ========================
 # UI
 # ========================
-def display_ui(agent: QuranAgent):
+def render_message(user_msg, bot_msg):
     st.markdown(
         f"""
+        <style>
+        .chat-container {{
+            max-width: 700px;
+            margin: 0 auto 10px auto;
+            font-family:  'Cairo', sans-serif;
+            background-color: {BACKGROUND_COLOR};
+            padding: 10px 20px;
+            border-radius: 12px;
+        }}
+        .message {{
+            display: flex;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }}
+        .user-msg {{
+            justify-content: flex-start;
+        }}
+        .bot-msg {{
+            justify-content: flex-end;
+        }}
+        .bubble {{
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 16px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }}
+        .user-bubble {{
+            background-color: #DCF8C6;
+            color: #000;
+            border-bottom-left-radius: 0;
+        }}
+        .bot-bubble {{
+            background-color: {ACCENT_COLOR};
+            color: #000;
+            border-bottom-right-radius: 0;
+        }}
+        .user-icon {{
+            font-weight: bold;
+            margin-right: 10px;
+            color: {PRIMARY_COLOR};
+            min-width: 30px;
+            text-align: center;
+        }}
+        .bot-icon {{
+            font-weight: bold;
+            margin-left: 10px;
+            color: #5a4b00;
+            min-width: 30px;
+            text-align: center;
+        }}
+        </style>
+
+        <div class="chat-container">
+            <div class="message user-msg">
+                <div class="user-icon">👤</div>
+                <div class="bubble user-bubble">{user_msg}</div>
+            </div>
+            <div class="message bot-msg">
+                <div class="bubble bot-bubble">🤖 {bot_msg}</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+def display_ui(agent: QuranAgent):
+    st.markdown(f"""
         <style>
         .stApp {{
             background-color: {BACKGROUND_COLOR};
@@ -121,47 +190,25 @@ def display_ui(agent: QuranAgent):
             font-size: 1rem;
             margin-bottom: 20px;
         }}
-        .chat-bubble {{
-            background-color: #e0f7fa;
-            padding: 1rem;
-            border-radius: 20px;
-            margin-top: 1rem;
-            text-align: right;
-            font-size: 1.1rem;
-            border: 1px solid #81d4fa;
-            color: #004d40;
-            box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-        }}
-        .user-bubble {{
-            background-color: #fff3e0;
-            color: #6d4c41;
-            text-align: left;
-        }}
         </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    """, unsafe_allow_html=True)
 
     st.markdown('<div class="main-title">🤖 مساعد تدبر السور القرآنية</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">اكتب سؤالك متضمنًا اسم السورة وسيتم استخراج الإجابة ✨</div>', unsafe_allow_html=True)
 
-    question = st.text_input("✍️ اكتب سؤالك هنا")
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
 
-    if st.button("🔍 الحصول على الإجابة"):
-        if question.strip():
-            # Show user's question
-            st.markdown(
-                f"<div class='chat-bubble user-bubble'>👤 {question}</div>",
-                unsafe_allow_html=True
-            )
-            # Show assistant's answer
-            answer = agent.answer_question(question)
-            st.markdown(
-                f"<div class='chat-bubble'>🤖 {answer}</div>",
-                unsafe_allow_html=True
-            )
-        else:
-            st.warning("⚠️ يرجى إدخال سؤال أولًا.")
+    with st.form("chat_form", clear_on_submit=True):
+        user_input = st.text_input("✍️ اكتب سؤالك هنا", key="input")
+        submitted = st.form_submit_button("🔍 إرسال")
+
+    if submitted and user_input.strip():
+        response = agent.answer_question(user_input)
+        st.session_state.chat_history.append((user_input, response))
+
+    for user_msg, bot_msg in st.session_state.chat_history[::-1]:  # Show latest on top
+        render_message(user_msg, bot_msg)
 
 # ========================
 # MAIN APP
