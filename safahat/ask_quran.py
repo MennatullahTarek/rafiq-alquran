@@ -8,8 +8,8 @@ import nest_asyncio
 
 nest_asyncio.apply()
 
-PRIMARY_COLOR = "#2E7D32"  # أخضر
-ACCENT_COLOR = "#FFC107"   # ذهبي
+PRIMARY_COLOR = "#2E7D32"  
+ACCENT_COLOR = "#FFC107"   
 BACKGROUND_COLOR = "#fffbf2"
 
 @st.cache_resource
@@ -160,12 +160,12 @@ def app():
     if "qa_pipeline" not in st.session_state:
         st.session_state.qa_pipeline = load_llm_model()
 
-    # عرض المحادثة بشكل فقاعات
+
     if st.session_state.chat_history:
         for user_msg, bot_msg in st.session_state.chat_history:
             render_message(user_msg, bot_msg)
 
-    # نص الإدخال مع on_change عشان نرسل بالضغط Enter
+   
     st.text_input(
         "💬 أكتب رسالتك هنا:",
         key="user_input",
