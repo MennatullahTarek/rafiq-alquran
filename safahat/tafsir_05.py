@@ -245,9 +245,9 @@ class QuranAppUI:
 
 # ------------------ Main ------------------
 
-def main():
+def app():
     app = QuranAppUI()
     app.run()
 
 if __name__ == "__main__":
-    main()
+    app()
